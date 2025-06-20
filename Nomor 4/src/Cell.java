@@ -48,4 +48,4 @@ public class Cell {
             g2d.drawOval(x1, y1, SEED_SIZE, SEED_SIZE);
         }
     }
-}//anjay icaa
+}
