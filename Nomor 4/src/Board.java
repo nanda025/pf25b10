@@ -104,4 +104,4 @@ public class Board {
             }
         }
     }
-}
+}//yeay ica bisa
