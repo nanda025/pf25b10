@@ -1,6 +1,5 @@
 # pf25b10
-E234211 - Programming Fundamental Mini Project
-Mini Project 
+E234211 - Programming Fundamental Project
 Group 10, Class B
 Team Member
 1. 5026241023 - Fachry Ananda Akmal
