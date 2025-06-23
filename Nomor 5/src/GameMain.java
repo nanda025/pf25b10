@@ -23,12 +23,14 @@ public class GameMain extends JPanel {
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
     private boolean vsComputer = true;
+    private String aiLevel;
 
     /**
      * Constructor to setup the UI and game components
      */
-    public GameMain(boolean vsComputer) {
+    public GameMain(boolean vsComputer, String aiLevel) {
         this.vsComputer = vsComputer;
+        this.aiLevel = aiLevel.toLowerCase();
 
         // This JPanel fires MouseEvent
         super.addMouseListener(new MouseAdapter() {
@@ -150,48 +152,21 @@ public class GameMain extends JPanel {
     private void computerMove() {
         if (currentState != State.PLAYING) return;
 
-        Point move = findWinningOrBlockingMove(Seed.NOUGHT);
-        if (move == null) move = findWinningOrBlockingMove(Seed.CROSS);
-        if (move == null && board.cells[1][1].content == Seed.NO_SEED) move = new Point(1, 1);
-        if (move == null) {
-            for (int row = 0; row < Board.ROWS; row++) {
-                for (int col = 0; col < Board.COLS; col++) {
-                    if (board.cells[row][col].content == Seed.NO_SEED) {
-                        move = new Point(row, col);
-                        break;
-                    }
-                }
-                if (move != null) break;
-            }
-        }
+        AI ai = new AI(board, currentPlayer, aiLevel);
+        Point move = ai.getMove();
 
         if (move != null) {
-            currentState = board.stepGame(Seed.NOUGHT, move.x, move.y);
-            SoundEffect.EAT_FOOD.play();
+            currentState = board.stepGame(currentPlayer, move.x, move.y);
+
+            if (currentState == State.PLAYING) {
+                SoundEffect.EAT_FOOD.play();
+            } else {
+                SoundEffect.DIE.play();
+            }
+
             currentPlayer = Seed.CROSS;
         }
     }
-
-    private Point findWinningOrBlockingMove(Seed seed) {
-        for (int row = 0; row < Board.ROWS; row++) {
-            for (int col = 0; col < Board.COLS; col++) {
-                if (board.cells[row][col].content == Seed.NO_SEED) {
-                    board.cells[row][col].content = seed;
-                    State result = board.stepGame(seed, row, col);
-                    board.cells[row][col].content = Seed.NO_SEED;
-                    if ((seed == Seed.NOUGHT && result == State.NOUGHT_WON) ||
-                            (seed == Seed.CROSS && result == State.CROSS_WON)) {
-                        return new Point(row, col);
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-
-
-
     /**
      * Custom painting codes on this JPanel
      */

@@ -57,17 +57,11 @@ public class Board {
             return (player == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
         }
 
-
-        // Cek apakah masih ada kotak kosong
-        for (int row = 0; row < ROWS; ++row) {
-            for (int col = 0; col < COLS; ++col) {
-                if (cells[row][col].content == Seed.NO_SEED) {
-                    return State.PLAYING;
-                }
-            }
+        if (isFull()) {
+            return State.DRAW;
         }
 
-        return State.DRAW; // Tidak ada kotak kosong, hasil seri
+        return State.PLAYING;
     }
 
     // Digunakan oleh AI untuk mengecek apakah langkah tertentu menghasilkan kemenangan
@@ -76,6 +70,39 @@ public class Board {
                 (cells[0][col].content == player && cells[1][col].content == player && cells[2][col].content == player) || // kolom
                 (row == col && cells[0][0].content == player && cells[1][1].content == player && cells[2][2].content == player) || // diagonal utama
                 (row + col == 2 && cells[0][2].content == player && cells[1][1].content == player && cells[2][0].content == player);  // diagonal sebalik
+    }
+
+    public boolean isWinning(Seed player) {
+        for (int row = 0; row < ROWS; row++) {
+            if (cells[row][0].content == player &&
+                    cells[row][1].content == player &&
+                    cells[row][2].content == player) return true;
+        }
+
+        for (int col = 0; col < COLS; col++) {
+            if (cells[0][col].content == player &&
+                    cells[1][col].content == player &&
+                    cells[2][col].content == player) return true;
+        }
+
+        if (cells[0][0].content == player &&
+                cells[1][1].content == player &&
+                cells[2][2].content == player) return true;
+
+        if (cells[0][2].content == player &&
+                cells[1][1].content == player &&
+                cells[2][0].content == player) return true;
+
+        return false;
+    }
+
+    public boolean isFull() {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (cells[row][col].content == Seed.NO_SEED) return false;
+            }
+        }
+        return true;
     }
 
     // Gambar papan dan sel-selnya

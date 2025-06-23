@@ -1,55 +1,78 @@
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
 
 public class welcomePanel extends JPanel {
+    private JFrame parentFrame;
+
     public welcomePanel(JFrame frame) {
-        setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 220)); // Warna krem
+        this.parentFrame = frame;
+        setLayout(new GridBagLayout());
+        setBackground(new Color(245, 245, 220)); // krem
 
-        JLabel title = new JLabel("Welcome to Tic Tac Toe!", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 26));
-        title.setBorder(BorderFactory.createEmptyBorder(50, 0, 30, 0));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Tombol pilihan mode
-        JButton vsPlayerButton = new JButton("2 Player Mode");
-        vsPlayerButton.setFont(new Font("Arial", Font.BOLD, 18));
-        vsPlayerButton.setBackground(new Color(0, 128, 0));
-        vsPlayerButton.setForeground(Color.WHITE);
-        vsPlayerButton.setFocusPainted(false);
-        vsPlayerButton.setPreferredSize(new Dimension(200, 50));
+        JLabel title = new JLabel("Tic-Tac-Toe");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setHorizontalAlignment(JLabel.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        add(title, gbc);
 
-        JButton vsComputerButton = new JButton("Play vs Computer");
-        vsComputerButton.setFont(new Font("Arial", Font.BOLD, 18));
-        vsComputerButton.setBackground(new Color(0, 0, 128));
-        vsComputerButton.setForeground(Color.WHITE);
-        vsComputerButton.setFocusPainted(false);
-        vsComputerButton.setPreferredSize(new Dimension(200, 50));
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+        JRadioButton twoPlayer = new JRadioButton("2 Player");
+        JRadioButton vsAI = new JRadioButton("vs AI");
+        ButtonGroup modeGroup = new ButtonGroup();
+        modeGroup.add(twoPlayer);
+        modeGroup.add(vsAI);
+        twoPlayer.setSelected(true);
 
-        // Panel untuk tombol di tengah
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(new Color(245, 245, 220));
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 10));
-        buttonPanel.add(vsPlayerButton);
-        buttonPanel.add(vsComputerButton);
+        add(twoPlayer, gbc);
+        gbc.gridx = 1;
+        add(vsAI, gbc);
 
-        add(title, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel difficultyLabel = new JLabel("AI Difficulty:");
+        JComboBox<String> difficultyBox = new JComboBox<>(new String[]{"Easy", "Medium", "Hard"});
+        difficultyLabel.setEnabled(false);
+        difficultyBox.setEnabled(false);
 
-        // Action Listener untuk mode 2 pemain
-        vsPlayerButton.addActionListener(e -> {
-            GameMain gamePanel = new GameMain(false); // false = 2 pemain
-            frame.setContentPane(gamePanel);
-            frame.revalidate();
-            gamePanel.requestFocusInWindow();
+        add(difficultyLabel, gbc);
+        gbc.gridx = 1;
+        add(difficultyBox, gbc);
+
+        // Toggle difficulty dropdown only if vsAI selected
+        vsAI.addActionListener(e -> {
+            difficultyLabel.setEnabled(true);
+            difficultyBox.setEnabled(true);
+        });
+        twoPlayer.addActionListener(e -> {
+            difficultyLabel.setEnabled(false);
+            difficultyBox.setEnabled(false);
         });
 
-        // Action Listener untuk melawan komputer
-        vsComputerButton.addActionListener(e -> {
-            GameMain gamePanel = new GameMain(true); // true = lawan komputer
-            frame.setContentPane(gamePanel);
-            frame.revalidate();
-            gamePanel.requestFocusInWindow();
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
+        JButton startButton = new JButton("Start Game");
+        startButton.setFont(new Font("Arial", Font.BOLD, 14));
+        add(startButton, gbc);
+
+        startButton.addActionListener(e -> {
+            boolean isVsAI = vsAI.isSelected();
+            String selectedDifficulty = (String) difficultyBox.getSelectedItem();
+            if (!isVsAI) selectedDifficulty = "None"; // Untuk 2 Player mode
+
+            // Panggil GameMain dengan info AI level
+            GameMain gamePanel = new GameMain(isVsAI, selectedDifficulty);
+            parentFrame.setContentPane(gamePanel);
+            parentFrame.revalidate();
+            parentFrame.repaint();
         });
     }
 }
