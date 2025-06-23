@@ -53,38 +53,34 @@ public class Board {
         // Update game board
         cells[selectedRow][selectedCol].content = player;
 
-        // Compute and return the new game state
-        if (cells[selectedRow][0].content == player  // 3-in-the-row
-                && cells[selectedRow][1].content == player
-                && cells[selectedRow][2].content == player
-                || cells[0][selectedCol].content == player // 3-in-the-column
-                && cells[1][selectedCol].content == player
-                && cells[2][selectedCol].content == player
-                || selectedRow == selectedCol     // 3-in-the-diagonal
-                && cells[0][0].content == player
-                && cells[1][1].content == player
-                && cells[2][2].content == player
-                || selectedRow + selectedCol == 2 // 3-in-the-opposite-diagonal
-                && cells[0][2].content == player
-                && cells[1][1].content == player
-                && cells[2][0].content == player) {
+        if (hasWon(player, selectedRow, selectedCol)) {
             return (player == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
-        } else {
-            // Nobody win. Check for DRAW (all cells occupied) or PLAYING.
-            for (int row = 0; row < ROWS; ++row) {
-                for (int col = 0; col < COLS; ++col) {
-                    if (cells[row][col].content == Seed.NO_SEED) {
-                        return State.PLAYING; // still have empty cells
-                    }
+        }
+
+
+        // Cek apakah masih ada kotak kosong
+        for (int row = 0; row < ROWS; ++row) {
+            for (int col = 0; col < COLS; ++col) {
+                if (cells[row][col].content == Seed.NO_SEED) {
+                    return State.PLAYING;
                 }
             }
-            return State.DRAW; // no empty cell, it's a draw
         }
+
+        return State.DRAW; // Tidak ada kotak kosong, hasil seri
     }
 
-    /** Paint itself on the graphics canvas, given the Graphics context */
+    // Digunakan oleh AI untuk mengecek apakah langkah tertentu menghasilkan kemenangan
+    public boolean hasWon(Seed player, int row, int col) {
+        return (cells[row][0].content == player && cells[row][1].content == player && cells[row][2].content == player) || // baris
+                (cells[0][col].content == player && cells[1][col].content == player && cells[2][col].content == player) || // kolom
+                (row == col && cells[0][0].content == player && cells[1][1].content == player && cells[2][2].content == player) || // diagonal utama
+                (row + col == 2 && cells[0][2].content == player && cells[1][1].content == player && cells[2][0].content == player);  // diagonal sebalik
+    }
+
+    // Gambar papan dan sel-selnya
     public void paint(Graphics g) {
-        // Draw the grid-lines
+        // Garis grid
         g.setColor(COLOR_GRID);
         for (int row = 1; row < ROWS; ++row) {
             g.fillRoundRect(0, Cell.SIZE * row - GRID_WIDTH_HALF,
@@ -96,11 +92,13 @@ public class Board {
                     GRID_WIDTH, CANVAS_HEIGHT - 1,
                     GRID_WIDTH, GRID_WIDTH);
         }
-        // Draw all the cells
+
+        // Gambar semua sel
         for (int row = 0; row < ROWS; ++row) {
             for (int col = 0; col < COLS; ++col) {
-                cells[row][col].paint(g);  // ask the cell to paint itself
+                cells[row][col].paint(g);
             }
         }
     }
 }
+

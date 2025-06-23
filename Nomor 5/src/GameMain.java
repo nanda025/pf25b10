@@ -17,15 +17,16 @@ public class GameMain extends JPanel {
     public static final Font FONT_STATUS = new Font("OCR A Extended", Font.PLAIN, 14);
 
 
-
     // Define game objects
     private Board board;         // the game board
     private State currentState;  // the current state of the game
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
-    private boolean vsComputer;
+    private boolean vsComputer = true;
 
-    /** Constructor to setup the UI and game components */
+    /**
+     * Constructor to setup the UI and game components
+     */
     public GameMain(boolean vsComputer) {
         this.vsComputer = vsComputer;
 
@@ -45,8 +46,9 @@ public class GameMain extends JPanel {
                 int row = mouseY / Cell.SIZE;
                 int col = mouseX / Cell.SIZE;
 
-                if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
-                        && board.cells[row][col].content == Seed.NO_SEED) {
+                if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS &&
+                        board.cells[row][col].content == Seed.NO_SEED) {
+
                     currentState = board.stepGame(currentPlayer, row, col);
 
                     if (currentState == State.PLAYING) {
@@ -55,18 +57,18 @@ public class GameMain extends JPanel {
                         SoundEffect.DIE.play();
                     }
 
+                    // Ganti ke pemain berikutnya
+                    currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                     repaint();
 
-                    if (vsComputer && currentPlayer == Seed.CROSS && currentState == State.PLAYING) {
-                        currentPlayer = Seed.NOUGHT;
+                    // === AI jalan otomatis setelah pemain main ===
+                    if (vsComputer && currentPlayer == Seed.NOUGHT && currentState == State.PLAYING) {
                         Timer aiTimer = new Timer(300, evt -> {
                             computerMove();
                             repaint();
                         });
                         aiTimer.setRepeats(false);
                         aiTimer.start();
-                    } else {
-                        currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                     }
                 }
             }
@@ -118,12 +120,16 @@ public class GameMain extends JPanel {
         newGame();
     }
 
-    /** Initialize the game (run once) */
+    /**
+     * Initialize the game (run once)
+     */
     public void initGame() {
         board = new Board();  // allocate the game-board
     }
 
-    /** Reset the game-board contents and the current-state, ready for new game */
+    /**
+     * Reset the game-board contents and the current-state, ready for new game
+     */
     public void newGame() {
         for (int row = 0; row < Board.ROWS; ++row) {
             for (int col = 0; col < Board.COLS; ++col) {
@@ -137,10 +143,14 @@ public class GameMain extends JPanel {
             computerMove();
         }
     }
-    /** Komputer bermain secara otomatis */
+
+    /**
+     * Komputer bermain secara otomatis
+     */
     private void computerMove() {
         if (currentState != State.PLAYING) return;
 
+        // AI sederhana: cari langkah menang / blokir / langkah pertama tersedia
         for (int row = 0; row < Board.ROWS; ++row) {
             for (int col = 0; col < Board.COLS; ++col) {
                 if (board.cells[row][col].content == Seed.NO_SEED) {
@@ -152,14 +162,18 @@ public class GameMain extends JPanel {
                         SoundEffect.DIE.play();
                     }
 
-                    // Setelah komputer (NOUGHT) jalan, ganti ke CROSS
-                    currentPlayer = Seed.CROSS;
+                    currentPlayer = Seed.CROSS; // kembalikan ke pemain
                     return;
                 }
             }
         }
     }
-    /** Custom painting codes on this JPanel */
+
+
+
+    /**
+     * Custom painting codes on this JPanel
+     */
     @Override
     public void paintComponent(Graphics g) {  // Callback via repaint()
         super.paintComponent(g);
@@ -194,20 +208,23 @@ public class GameMain extends JPanel {
         }
     }
 
-    /** The entry "main" method */
+    /**
+     * The entry "main" method
+     */
     public static void main(String[] args) {
         // Run GUI construction codes in Event-Dispatching thread for thread safety
-                SwingUtilities.invokeLater(() -> {
-                    JFrame frame = new JFrame(TITLE);
-                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    frame.setSize(400, 450); // default size
-                    frame.setLocationRelativeTo(null); // center
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame(TITLE);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 450); // default size
+            frame.setLocationRelativeTo(null); // center
 
-                    // Tampilkan Welcome Panel dulu
-                    welcomePanel welcomePanel = new welcomePanel(frame);
-                    frame.setContentPane(welcomePanel);
+            // Tampilkan Welcome Panel dulu
+            welcomePanel welcomePanel = new welcomePanel(frame);
+            frame.setContentPane(welcomePanel);
 
-                    frame.setVisible(true);
-                });
+            frame.setVisible(true);
+        });
     }
 }
+
