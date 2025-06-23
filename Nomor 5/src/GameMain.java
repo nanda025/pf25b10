@@ -88,11 +88,7 @@ public class GameMain extends JPanel {
 
     /** Reset the game-board contents and the current-state, ready for new game */
     public void newGame() {
-        for (int row = 0; row < Board.ROWS; ++row) {
-            for (int col = 0; col < Board.COLS; ++col) {
-                board.cells[row][col].content = Seed.NO_SEED; // all cells empty
-            }
-        }
+        board.newGame();
         currentPlayer = Seed.CROSS;    // cross plays first
         currentState = State.PLAYING;  // ready to play
     }
