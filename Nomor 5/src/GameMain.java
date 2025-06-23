@@ -150,24 +150,45 @@ public class GameMain extends JPanel {
     private void computerMove() {
         if (currentState != State.PLAYING) return;
 
-        // AI sederhana: cari langkah menang / blokir / langkah pertama tersedia
-        for (int row = 0; row < Board.ROWS; ++row) {
-            for (int col = 0; col < Board.COLS; ++col) {
-                if (board.cells[row][col].content == Seed.NO_SEED) {
-                    currentState = board.stepGame(currentPlayer, row, col);
-
-                    if (currentState == State.PLAYING) {
-                        SoundEffect.EAT_FOOD.play();
-                    } else {
-                        SoundEffect.DIE.play();
+        Point move = findWinningOrBlockingMove(Seed.NOUGHT);
+        if (move == null) move = findWinningOrBlockingMove(Seed.CROSS);
+        if (move == null && board.cells[1][1].content == Seed.NO_SEED) move = new Point(1, 1);
+        if (move == null) {
+            for (int row = 0; row < Board.ROWS; row++) {
+                for (int col = 0; col < Board.COLS; col++) {
+                    if (board.cells[row][col].content == Seed.NO_SEED) {
+                        move = new Point(row, col);
+                        break;
                     }
+                }
+                if (move != null) break;
+            }
+        }
 
-                    currentPlayer = Seed.CROSS; // kembalikan ke pemain
-                    return;
+        if (move != null) {
+            currentState = board.stepGame(Seed.NOUGHT, move.x, move.y);
+            SoundEffect.EAT_FOOD.play();
+            currentPlayer = Seed.CROSS;
+        }
+    }
+
+    private Point findWinningOrBlockingMove(Seed seed) {
+        for (int row = 0; row < Board.ROWS; row++) {
+            for (int col = 0; col < Board.COLS; col++) {
+                if (board.cells[row][col].content == Seed.NO_SEED) {
+                    board.cells[row][col].content = seed;
+                    State result = board.stepGame(seed, row, col);
+                    board.cells[row][col].content = Seed.NO_SEED;
+                    if ((seed == Seed.NOUGHT && result == State.NOUGHT_WON) ||
+                            (seed == Seed.CROSS && result == State.CROSS_WON)) {
+                        return new Point(row, col);
+                    }
                 }
             }
         }
+        return null;
     }
+
 
 
 
