@@ -23,41 +23,52 @@ public class GameMain extends JPanel {
     private State currentState;  // the current state of the game
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
+    private boolean vsComputer;
 
     /** Constructor to setup the UI and game components */
-    public GameMain() {
+    public GameMain(boolean vsComputer) {
+        this.vsComputer = vsComputer;
 
         // This JPanel fires MouseEvent
         super.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {  // mouse-clicked handler
+                if (currentState != State.PLAYING) {
+                    newGame();
+                    repaint();
+                    return;
+                }
+
                 int mouseX = e.getX();
                 int mouseY = e.getY();
                 // Get the row and column clicked
                 int row = mouseY / Cell.SIZE;
                 int col = mouseX / Cell.SIZE;
 
-                if (currentState == State.PLAYING) {
-                    if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
-                            && board.cells[row][col].content == Seed.NO_SEED) {
-                        // Update cells[][] and return the new game state after the move
-                        currentState = board.stepGame(currentPlayer, row, col);
+                if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
+                        && board.cells[row][col].content == Seed.NO_SEED) {
+                    currentState = board.stepGame(currentPlayer, row, col);
 
-                        // Play appropriate sound clip
-                        if (currentState == State.PLAYING) {
-                            SoundEffect.EAT_FOOD.play();
-                        } else {
-                            SoundEffect.DIE.play();
-                        }
+                    if (currentState == State.PLAYING) {
+                        SoundEffect.EAT_FOOD.play();
+                    } else {
+                        SoundEffect.DIE.play();
+                    }
 
-                        // Switch player
+                    repaint();
+
+                    if (vsComputer && currentPlayer == Seed.CROSS && currentState == State.PLAYING) {
+                        currentPlayer = Seed.NOUGHT;
+                        Timer aiTimer = new Timer(300, evt -> {
+                            computerMove();
+                            repaint();
+                        });
+                        aiTimer.setRepeats(false);
+                        aiTimer.start();
+                    } else {
                         currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                     }
-                } else {        // game over
-                    newGame();  // restart the game
                 }
-                // Refresh the drawing canvas
-                repaint();  // Callback paintComponent().
             }
         });
 
@@ -121,8 +132,33 @@ public class GameMain extends JPanel {
         }
         currentPlayer = Seed.CROSS;    // cross plays first
         currentState = State.PLAYING;  // ready to play
-    }
 
+        if (vsComputer && currentPlayer == Seed.NOUGHT) {
+            computerMove();
+        }
+    }
+    /** Komputer bermain secara otomatis */
+    private void computerMove() {
+        if (currentState != State.PLAYING) return;
+
+        for (int row = 0; row < Board.ROWS; ++row) {
+            for (int col = 0; col < Board.COLS; ++col) {
+                if (board.cells[row][col].content == Seed.NO_SEED) {
+                    currentState = board.stepGame(currentPlayer, row, col);
+
+                    if (currentState == State.PLAYING) {
+                        SoundEffect.EAT_FOOD.play();
+                    } else {
+                        SoundEffect.DIE.play();
+                    }
+
+                    // Setelah komputer (NOUGHT) jalan, ganti ke CROSS
+                    currentPlayer = Seed.CROSS;
+                    return;
+                }
+            }
+        }
+    }
     /** Custom painting codes on this JPanel */
     @Override
     public void paintComponent(Graphics g) {  // Callback via repaint()
