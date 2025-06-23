@@ -78,7 +78,21 @@ public class GameMain extends JPanel {
             repaint();
         });
 
+        JToggleButton soundToggle = new JToggleButton("Sound: ON");
+        soundToggle.setFont(new Font("Arial", Font.BOLD, 14));
+        soundToggle.setFocusPainted(false);
+        soundToggle.addActionListener(e -> {
+            if (soundToggle.isSelected()) {
+                SoundEffect.volume = SoundEffect.Volume.MUTE;
+                soundToggle.setText("Sound: OFF");
+            } else {
+                SoundEffect.volume = SoundEffect.Volume.LOW;
+                soundToggle.setText("Sound: ON");
+            }
+        });
+
         JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(soundToggle, BorderLayout.WEST);
         bottomPanel.add(statusBar, BorderLayout.CENTER);
         bottomPanel.add(restartButton, BorderLayout.EAST);
 
