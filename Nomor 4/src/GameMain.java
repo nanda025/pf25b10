@@ -10,7 +10,7 @@ public class GameMain extends JPanel {
 
     // Define named constants for the drawing graphics
     public static final String TITLE = "Tic Tac Toe";
-    public static final Color COLOR_BG = new Color(255, 253, 208);       // Krem
+    public static final Color COLOR_BG = new Color(255, 255, 0);       // Krem
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
     public static final Color COLOR_CROSS = new Color(0, 0, 255);        // Biru
     public static final Color COLOR_NOUGHT = new Color(255, 105, 180);   // Pink (Hot Pink)
