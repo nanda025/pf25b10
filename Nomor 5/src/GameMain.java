@@ -131,6 +131,17 @@ public class GameMain extends JPanel {
 
         board.paint(g);  // ask the game board to paint itself
 
+        if (currentState == State.CROSS_WON || currentState == State.NOUGHT_WON || currentState == State.DRAW) {
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            g.setColor(Color.RED);
+            String msg = (currentState == State.DRAW) ? "It's a Draw!" :
+                    (currentState == State.CROSS_WON) ? "X Wins!" : "O Wins!";
+            FontMetrics fm = g.getFontMetrics();
+            int msgWidth = fm.stringWidth(msg);
+            int x = (Board.CANVAS_WIDTH - msgWidth) / 2;
+            int y = Board.CANVAS_HEIGHT / 2;
+            g.drawString(msg, x, y);
+        }
         // Print status-bar message
         if (currentState == State.PLAYING) {
             statusBar.setForeground(Color.BLACK);
