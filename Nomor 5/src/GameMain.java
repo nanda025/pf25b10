@@ -70,8 +70,20 @@ public class GameMain extends JPanel {
         statusBar.setHorizontalAlignment(JLabel.LEFT);
         statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
 
+        JButton restartButton = new JButton("Restart");
+        restartButton.setFont(new Font("Arial", Font.BOLD, 14));
+        restartButton.setFocusPainted(false);
+        restartButton.addActionListener(e -> {
+            newGame();
+            repaint();
+        });
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(statusBar, BorderLayout.CENTER);
+        bottomPanel.add(restartButton, BorderLayout.EAST);
+
         super.setLayout(new BorderLayout());
-        super.add(statusBar, BorderLayout.PAGE_END); // same as SOUTH
+        super.add(bottomPanel, BorderLayout.PAGE_END);
         super.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT + 30));
         // account for statusBar in height
         super.setBorder(BorderFactory.createLineBorder(COLOR_BG_STATUS, 2, false));
