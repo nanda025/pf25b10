@@ -9,7 +9,7 @@ public class GameMain extends JPanel {
     private static final long serialVersionUID = 1L; // to prevent serializable warning
 
     // Define named constants for the drawing graphics
-    public static final String TITLE = "Tic Tac Toe";
+    public static final String TITLE = "Kelompok B10";
     public static final Color COLOR_BG = new Color(245, 245, 220);       // Krem
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
     public static final Color COLOR_CROSS = new Color(255, 255, 0);      // Kuning
@@ -124,16 +124,17 @@ public class GameMain extends JPanel {
     /** The entry "main" method */
     public static void main(String[] args) {
         // Run GUI construction codes in Event-Dispatching thread for thread safety
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                JFrame frame = new JFrame(TITLE);
-                // Set the content-pane of the JFrame to an instance of main JPanel
-                frame.setContentPane(new GameMain());
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.pack();
-                frame.setLocationRelativeTo(null); // center the application window
-                frame.setVisible(true);            // show it
-            }
-        });
+                SwingUtilities.invokeLater(() -> {
+                    JFrame frame = new JFrame(TITLE);
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    frame.setSize(400, 450); // default size
+                    frame.setLocationRelativeTo(null); // center
+
+                    // Tampilkan Welcome Panel dulu
+                    welcomePanel welcomePanel = new welcomePanel(frame);
+                    frame.setContentPane(welcomePanel);
+
+                    frame.setVisible(true);
+                });
     }
 }

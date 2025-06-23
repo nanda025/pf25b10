@@ -1,4 +1,6 @@
 import java.util.Scanner;
+import java.awt.*;
+import javax.swing.*;
 /**
  * The main class for the Tic-Tac-Toe (Console-OO, non-graphics version)
  * It acts as the overall controller of the game.
@@ -77,6 +79,24 @@ public class GameMain {
 
     /** The entry main() method */
     public static void main(String[] args) {
-        new GameMain();  // Let the constructor do the job
+        new GameMain();
+
+            SwingUtilities.invokeLater(() -> {
+                JFrame frame = new JFrame("Kelompok B10");
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setSize(400, 450); // default size
+                frame.setLocationRelativeTo(null); // center
+
+                // Tampilkan Welcome Panel dulu
+                WelcomePanel welcomePanel = new WelcomePanel(frame);
+                frame.setContentPane(welcomePanel);
+
+                frame.setVisible(true);
+            });
+        }
+
+        // Let the constructor do the job
     }
-}
+
+
+
