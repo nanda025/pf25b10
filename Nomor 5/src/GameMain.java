@@ -29,19 +29,14 @@ public class GameMain extends JPanel {
     private Timer moveTimer;
     private boolean hasMovedThisTurn = false;
 
-
-
-    // --- VARIABEL BARU UNTUK MULTIPLAYER ONLINE ---
     private boolean isOnlineMultiplayer = false;
-    private String myUsername; // Username pemain saya
-    private String onlineGameId; // ID game online yang sedang dimainkan
-    private boolean amIPlayer1Cross; // true jika saya player X (CROSS), false jika player O (NOUGHT)
-    private int lastFetchedMoveNumber = -1; // Untuk melacak move terakhir yang diambil dari DB
-    private ScheduledExecutorService scheduler; // Untuk polling
+    private String myUsername;
+    private String onlineGameId;
+    private boolean amIPlayer1Cross;
+    private int lastFetchedMoveNumber = -1;
+    private ScheduledExecutorService scheduler;
     private Image backgroundImage;
 
-
-    // Konstruktor baru dengan parameter multiplayer
     public GameMain(boolean isVsAI, String aiDifficulty, int timePerTurn, String gameId, String username, Boolean amIPlayer1Cross)
     {
         this.vsComputer = isVsAI;
@@ -55,13 +50,12 @@ public class GameMain extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (currentState != State.PLAYING) {
-                    newGame(); // Reset game jika game sudah selesai
+                    newGame();
                     repaint();
                     return;
                 }
 
                 if (isOnlineMultiplayer) {
-                    // Dalam mode online, hanya izinkan klik jika giliran saya
                     Seed mySeed = amIPlayer1Cross ? Seed.CROSS : Seed.NOUGHT;
                     if (currentPlayer != mySeed) {
                         System.out.println("Bukan giliran Anda.");
@@ -78,11 +72,9 @@ public class GameMain extends JPanel {
                         board.cells[row][col].content == Seed.NO_SEED) {
 
                     if (isOnlineMultiplayer) {
-                        // Multiplayer Online: kirim ke database
                         sendMoveToDatabase(row, col);
-                        stopTimer(); // Hentikan timer giliran saya
+                        stopTimer();
                     } else {
-                        // Mode Lokal / AI
                         currentState = board.stepGame(currentPlayer, row, col);
                         stopTimer();
 
@@ -95,26 +87,24 @@ public class GameMain extends JPanel {
                         currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                         repaint();
 
-                        // Jika lawan adalah komputer
                         if (vsComputer && currentPlayer == Seed.NOUGHT && currentState == State.PLAYING) {
                             Timer aiTimer = new Timer(300, evt -> {
-                                computerMove(); // AI melakukan langkah
+                                computerMove();
                                 repaint();
                                 if (currentState == State.PLAYING) {
-                                    startTimer(); // Timer dimulai untuk giliran player
+                                    startTimer();
                                 }
                             });
                             aiTimer.setRepeats(false);
                             aiTimer.start();
                         } else if (currentState == State.PLAYING) {
-                            startTimer(); // Timer dimulai untuk giliran berikutnya
+                            startTimer();
                         }
                     }
                 }
             }
         });
 
-        // Setup the status bar (JLabel) to display status message
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
         statusBar.setBackground(COLOR_BG_STATUS);
@@ -133,11 +123,9 @@ public class GameMain extends JPanel {
 
         JPanel infoPanel = new JPanel(new BorderLayout());
         infoPanel.setBackground(COLOR_BG_STATUS);
-        infoPanel.add(countdownLabel, BorderLayout.EAST); // Tambahkan countdown ke kanan
+        infoPanel.add(countdownLabel, BorderLayout.EAST);
 
-        super.add(infoPanel, BorderLayout.NORTH); // Letakkan infoPanel di atas papan
-
-
+        super.add(infoPanel, BorderLayout.NORTH);
 
         JButton restartButton = new JButton("Restart");
         restartButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -169,9 +157,7 @@ public class GameMain extends JPanel {
         rightPanel.add(restartButton);
         bottomPanel.add(rightPanel, BorderLayout.EAST);
 
-
         super.setLayout(new BorderLayout());
-        // Load background image
         try {
             backgroundImage = new ImageIcon(getClass().getResource("image/Background.jpg")).getImage();
         } catch (Exception e) {
@@ -184,16 +170,14 @@ public class GameMain extends JPanel {
         super.setBorder(BorderFactory.createLineBorder(COLOR_BG_STATUS, 2, false));
 
         initGame();
-        newGame(); // Panggil newGame untuk setup awal
+        newGame();
     }
 
-    // Metode baru untuk mengatur mode multiplayer online
     public void setOnlineMultiplayer(boolean isOnline, String username, boolean amIPlayer1) {
         this.isOnlineMultiplayer = isOnline;
         this.myUsername = username;
         this.amIPlayer1Cross = amIPlayer1;
-        // Inisialisasi lastFetchedMoveNumber jika ini adalah game baru atau join
-        this.lastFetchedMoveNumber = -1; // Akan diperbarui setelah fetch pertama
+        this.lastFetchedMoveNumber = -1;
     }
 
     public void initGame() {
@@ -203,14 +187,12 @@ public class GameMain extends JPanel {
     public void newGame() {
         board.newGame();
         if (isOnlineMultiplayer) {
-            // Dalam mode online, status game dan giliran ditentukan oleh gerakan di DB
             currentState = State.PLAYING;
-            currentPlayer = Seed.NO_SEED; // Sementara, akan di-override oleh polling
-            lastFetchedMoveNumber = -1; // Reset untuk game baru
-            stopPolling(); // Hentikan scheduler lama jika ada
+            currentPlayer = Seed.NO_SEED;
+            lastFetchedMoveNumber = -1;
+            stopPolling();
 
-            // Clear moves for this game in DB if creating a new one (only by the creator, otherwise just fetch)
-            if (amIPlayer1Cross) { // Asumsi hanya player X yang bisa mereset game ini
+            if (amIPlayer1Cross) {
                 new SwingWorker<Void, Void>() {
                     @Override
                     protected Void doInBackground() throws Exception {
@@ -219,17 +201,16 @@ public class GameMain extends JPanel {
                             System.out.println("Cleared old moves for game: " + onlineGameId);
                         } catch (SQLException | ClassNotFoundException ex) {
                             System.err.println("Error clearing game moves: " + ex.getMessage());
-                            // Handle error, maybe show a message
                         }
                         return null;
                     }
                     @Override
                     protected void done() {
-                        pollForGameUpdates(); // Mulai polling setelah board dibersihkan
+                        pollForGameUpdates();
                     }
                 }.execute();
             } else {
-                pollForGameUpdates(); // Player O hanya langsung polling
+                pollForGameUpdates();
             }
 
         } else {
@@ -243,58 +224,39 @@ public class GameMain extends JPanel {
         startTimer();
     }
 
-    private long startTime; // waktu mulai giliran dalam ms
+    private long startTime;
 
     private void startTimer() {
-        // Hentikan timer lama jika ada
         stopTimer();
-
-        // Reset status giliran
         hasMovedThisTurn = false;
-
-        // Simpan waktu mulai giliran
         startTime = System.currentTimeMillis();
-
-        // Atur sisa waktu awal
         timeLeft = turnTime;
         countdownLabel.setText("Time: " + timeLeft);
 
-        // Timer berjalan setiap 200ms untuk responsif
         moveTimer = new Timer(200, e -> {
-            // Jika pemain sudah bergerak, hentikan timer
             if (hasMovedThisTurn) {
                 moveTimer.stop();
                 return;
             }
 
-            // Hitung waktu berlalu dalam detik
             long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
             int remainingSeconds = turnTime - (int) elapsedSeconds;
 
-            // Perbarui label hanya jika ada perubahan
             if (remainingSeconds != timeLeft) {
                 timeLeft = remainingSeconds;
                 countdownLabel.setText("Time: " + timeLeft);
             }
-
-            // Jika waktu habis
             if (remainingSeconds <= 0) {
                 moveTimer.stop();
-
                 if (!isOnlineMultiplayer) {
-                    // Ganti giliran di mode lokal
                     currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
-                    startTimer(); // Mulai timer untuk giliran berikutnya
+                    startTimer();
                 }
-
                 repaint();
             }
         });
-
         moveTimer.start();
     }
-
-
 
     private void stopTimer() {
         if (moveTimer != null && moveTimer.isRunning()) {
@@ -302,10 +264,8 @@ public class GameMain extends JPanel {
         }
     }
 
-
     private void computerMove() {
         if (currentState != State.PLAYING) return;
-
         AI ai = new AI(board, currentPlayer, aiLevel);
         Point move = ai.getMove();
 
@@ -320,33 +280,22 @@ public class GameMain extends JPanel {
         }
     }
 
-    // --- METODE BARU UNTUK KOMUNIKASI DENGAN DATABASE ---
-
-    // Mengirim gerakan ke database
     private void sendMoveToDatabase(int row, int col) {
         if (onlineGameId == null || myUsername == null) return;
-        if (currentState != State.PLAYING) return; // Jangan kirim gerakan jika game sudah selesai
-
+        if (currentState != State.PLAYING) return;
         final Seed playerSeedEnum = amIPlayer1Cross ? Seed.CROSS : Seed.NOUGHT;
         final String playerSeedStr = playerSeedEnum.getDisplayName(); // "X" atau "O"
-
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws Exception {
                 try {
-                    // Cari moveNumber berikutnya. Ini adalah masalah umum dalam JDBC langsung.
-                    // Cara sederhana: ambil move terakhir + 1. Ini rentan race condition.
-                    // Cara lebih baik (tapi lebih kompleks): gunakan transaction di sisi server,
-                    // atau AtomicInteger di server jika ada single point of entry.
-                    // Untuk demo ini, kita akan coba ambil dari DB dulu.
+
                     List<DatabaseManager.Move> allCurrentMoves = DatabaseManager.fetchMoves(onlineGameId, -1);
                     int nextMoveNumber = 0;
                     if (!allCurrentMoves.isEmpty()) {
                         nextMoveNumber = allCurrentMoves.get(allCurrentMoves.size() - 1).moveNumber + 1;
                     }
-
                     DatabaseManager.insertMove(onlineGameId, nextMoveNumber, myUsername, playerSeedStr, row, col);
-                    // Setelah insert, paksa fetch update untuk segera memperbarui board lokal
                     fetchNewMovesAndApply();
                     SoundEffect.EAT_FOOD.play();
                 } catch (SQLException | ClassNotFoundException ex) {
@@ -358,21 +307,17 @@ public class GameMain extends JPanel {
         }.execute();
     }
 
-    // Memulai polling untuk update game dari database
     public void pollForGameUpdates() {
-        stopPolling(); // Pastikan tidak ada polling ganda
+        stopPolling();
         scheduler = Executors.newSingleThreadScheduledExecutor();
-        // Poll setiap 1 detik. Sesuaikan interval sesuai kebutuhan.
         scheduler.scheduleAtFixedRate(this::fetchNewMovesAndApply, 0, 1, TimeUnit.SECONDS);
     }
-
     private void stopPolling() {
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdownNow();
         }
     }
 
-    // Mengambil gerakan baru dari database dan menerapkannya ke board
     private void fetchNewMovesAndApply() {
         if (onlineGameId == null) return;
 
@@ -392,53 +337,34 @@ public class GameMain extends JPanel {
                     List<DatabaseManager.Move> newMoves = get();
                     if (!newMoves.isEmpty()) {
                         System.out.println("Fetched " + newMoves.size() + " new moves.");
-                        // Terapkan setiap gerakan baru ke papan
                         for (DatabaseManager.Move move : newMoves) {
                             if (move.moveNumber > lastFetchedMoveNumber) {
                                 Seed seed = (move.playerSeed.equals("X")) ? Seed.CROSS : Seed.NOUGHT;
-                                // PENTING: Gunakan board.stepGame untuk menerapkan gerakan
-                                // dan cek status game.
-                                // Kita harus memastikan urutan gerakan benar.
-                                // Cek board.cells[move.row][move.col].content == Seed.NO_SEED
-                                // mungkin tidak perlu jika move_number dijamin berurutan dan valid.
                                 if (board.cells[move.row][move.col].content == Seed.NO_SEED) {
                                     currentState = board.stepGame(seed, move.row, move.col);
-                                    // Update lastFetchedMoveNumber
                                     lastFetchedMoveNumber = move.moveNumber;
                                 } else {
                                     System.err.println("DatabaseManager: Menerima gerakan ke cell yang sudah terisi! (" + move.row + "," + move.col + ")");
                                 }
                             }
                         }
-                        // Setelah menerapkan semua gerakan, tentukan giliran berikutnya
-                        // Giliran adalah milik pemain yang TIDAK membuat gerakan terakhir
                         if (!newMoves.isEmpty()) {
                             DatabaseManager.Move lastMove = newMoves.get(newMoves.size() - 1);
-                            if (lastMove.playerSeed.equals("X")) { // Jika X yang terakhir bergerak
-                                currentPlayer = Seed.NOUGHT; // Giliran O
-                            } else { // Jika O yang terakhir bergerak
-                                currentPlayer = Seed.CROSS; // Giliran X
+                            if (lastMove.playerSeed.equals("X")) {
+                                currentPlayer = Seed.NOUGHT;
+                            } else {
+                                currentPlayer = Seed.CROSS;
                             }
-                        } else if (lastFetchedMoveNumber == -1) { // Jika belum ada gerakan sama sekali
-                            currentPlayer = Seed.CROSS; // Default Player X (CROSS) mulai duluan
+                        } else if (lastFetchedMoveNumber == -1) {
+                            currentPlayer = Seed.CROSS;
                         }
 
-
-//                        // Mainkan suara jika game masih bermain setelah gerakan baru
-//                        if (currentState == State.PLAYING) {
-//                            // SoundEffect.EAT_FOOD.play(); // Bisa diputar jika ada gerakan baru
-//                        } else {
-//                            SoundEffect.DIE.play(); // Sound jika game selesai
-//                            stopPolling(); // Hentikan polling jika game selesai
-//                        }
-
-                        repaint(); // Perbarui tampilan
-                        startTimer(); // Reset timer untuk giliran baru
+                        repaint();
+                        startTimer();
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     System.err.println("Error processing fetched moves: " + ex.getMessage());
-                    // stopPolling(); // Bisa hentikan polling jika error parah
                 }
             }
         }.execute();
@@ -452,14 +378,11 @@ public class GameMain extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // ✅ Gambar background image
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         } else {
-            setBackground(COLOR_BG); // fallback warna background jika gambar gagal load
+            setBackground(COLOR_BG);
         }
-
-        // Gambar board
         board.paint(g);
 
         if (currentState == State.CROSS_WON || currentState == State.NOUGHT_WON || currentState == State.DRAW) {
@@ -472,9 +395,8 @@ public class GameMain extends JPanel {
             int x = (Board.CANVAS_WIDTH - msgWidth) / 2;
             int y = Board.CANVAS_HEIGHT / 2;
             g.drawString(msg, x, y);
-            stopPolling(); // Hentikan polling jika game selesai
+            stopPolling();
         }
-        // Print status-bar message
         if (isOnlineMultiplayer) {
             statusBar.setForeground(Color.BLACK);
             if (currentState == State.PLAYING) {
@@ -496,7 +418,6 @@ public class GameMain extends JPanel {
                 statusBar.setText("'O' Menang! Klik Restart.");
             }
         } else {
-            // Logika status bar untuk mode lokal (sudah ada)
             if (currentState == State.PLAYING) {
                 statusBar.setForeground(Color.BLACK);
                 statusBar.setText((currentPlayer == Seed.CROSS) ? "X's Turn" : "O's Turn");
@@ -517,14 +438,12 @@ public class GameMain extends JPanel {
      * The entry "main" method
      */
     public static void main(String[] args) {
-        // Run GUI construction codes in Event-Dispatching thread for thread safety
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame(TITLE);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(400, 450); // default size
             frame.setLocationRelativeTo(null); // center
 
-            // Tampilkan Welcome Panel dulu
             welcomePanel welcomePanel = new welcomePanel(frame);
             frame.setContentPane(welcomePanel);
 
@@ -532,18 +451,14 @@ public class GameMain extends JPanel {
         });
     }
 
-    // Pastikan untuk menghentikan scheduler saat aplikasi ditutup
     @Override
     public void addNotify() {
         super.addNotify();
-        // Ketika komponen ditambahkan ke hirarki, ini dipanggil
     }
 
     @Override
     public void removeNotify() {
         super.removeNotify();
-        // Ketika komponen dihapus dari hirarki, ini dipanggil
-        // Hentikan scheduler untuk menghindari memory leak atau thread yang berjalan di latar belakang
         stopPolling();
     }
 }
