@@ -12,7 +12,7 @@ public class welcomePanel extends JPanel {
         this.parentFrame = frame;
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
-        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background2.jpg")).getImage();
+        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background3.jpg")).getImage();
 
         cardPanel.add(createMainMenu(), "MAIN_MENU");
         cardPanel.add(createGameSetupPanel(), "GAME_SETUP");
@@ -35,12 +35,6 @@ public class welcomePanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(15, 15, 15, 15);
 
-        JLabel title = new JLabel("Selamat Datang di Tic Tac Toe");
-        title.setFont(new Font("Arial", Font.BOLD, 22));
-        title.setForeground(Color.WHITE);
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(title, gbc);
-
         JButton startButton = new JButton("Mulai Permainan");
         JButton instructionButton = new JButton("Petunjuk Game");
         JButton exitButton = new JButton("Keluar");
@@ -50,7 +44,6 @@ public class welcomePanel extends JPanel {
         exitButton.setPreferredSize(new Dimension(180, 35));
 
         startButton.setBackground(new Color(59, 89, 182));
-        startButton.setForeground(Color.WHITE);
         instructionButton.setBackground(new Color(76, 175, 80));
         instructionButton.setForeground(Color.WHITE);
         exitButton.setBackground(Color.RED);
@@ -92,30 +85,33 @@ public class welcomePanel extends JPanel {
                 2. Pemain bergiliran menempatkan X dan O pada papan 3x3.
                 3. Pemain pertama yang membuat garis horizontal, vertikal, atau diagonal menang.
                 4. Jika semua kotak terisi dan tidak ada pemenang, maka permainan berakhir seri.
-                5. Untuk mode AI, Anda akan bermain melawan komputer.
-                6. Untuk multiplayer online, masukkan ID Game dan nama pengguna Anda.
+                5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain selanjutnya
+                6. Untuk mode AI, Anda akan bermain melawan komputer.
+                7. Untuk multiplayer online, masukkan ID Game dan nama pengguna Anda.
                 
                 Selamat bermain!
                 """);
         instructions.setEditable(false);
         instructions.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        instructions.setOpaque(false);
-        instructions.setOpaque(false);
-        instructions.setBackground(new Color(0, 0, 0, 0));
         instructions.setLineWrap(true);
         instructions.setWrapStyleWord(true);
-
+        instructions.setForeground(Color.BLACK);
+        instructions.setBackground(new Color(255, 255, 255)); // solid white
+        instructions.setOpaque(true);
 
         JScrollPane scrollPane = new JScrollPane(instructions);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
-        scrollPane.setBackground(new Color(0, 0, 0, 0));
-        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
+        JPanel whiteBox = new JPanel(new BorderLayout());
+        whiteBox.setBackground(new Color(255, 255, 255, 230)); // semi-transparent
+        whiteBox.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        whiteBox.add(scrollPane, BorderLayout.CENTER);
 
+        // tombol kembali
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(new Dimension(100, 30));
         backButton.addActionListener(e -> cardLayout.show(cardPanel, "MAIN_MENU"));
@@ -124,8 +120,9 @@ public class welcomePanel extends JPanel {
         bottomPanel.setOpaque(false);
         bottomPanel.add(backButton);
 
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(whiteBox, BorderLayout.CENTER);
         panel.add(bottomPanel, BorderLayout.SOUTH);
+
         return panel;
     }
 }
