@@ -255,11 +255,9 @@ public class GameMain extends JPanel {
             if (remainingSeconds <= 0) {
                 moveTimer.stop();
                 if (!isOnlineMultiplayer) {
-                    // Tampilkan pesan skip di tengah
                     skipMessage = "TIMES OUT!";
                     skipMessageStartTime = System.currentTimeMillis();
 
-                    // Ganti pemain
                     currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                     repaint();
 
@@ -515,8 +513,7 @@ public class GameMain extends JPanel {
     @Override
     public void removeNotify() {
         super.removeNotify();
-        // Ketika komponen dihapus dari hirarki, ini dipanggil
-        // Hentikan scheduler untuk menghindari memory leak atau thread yang berjalan di latar belakang
+
         stopPolling();
     }
 }

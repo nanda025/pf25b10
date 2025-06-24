@@ -1,4 +1,3 @@
-// welcomePanel.java (dengan background gambar)
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -24,8 +23,9 @@ public class welcomePanel extends JPanel {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel title = new JLabel("Tic-Tac-Toe");
-        title.setFont(new Font("Arial", Font.BOLD, 24));
+        JLabel title = new JLabel("Pilih Mode Permainan");
+        title.setFont(new Font("Arial", Font.BOLD, 22));
+        title.setForeground(Color.WHITE);
         title.setHorizontalAlignment(JLabel.CENTER);
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -35,8 +35,9 @@ public class welcomePanel extends JPanel {
         gbc.gridwidth = 1;
         gbc.gridy++;
         twoPlayerLocal = new JRadioButton("2 Player (Lokal)");
-        vsAI = new JRadioButton("vs AI");
-        onlineMultiplayer = new JRadioButton("Multiplayer Online");
+        vsAI = new JRadioButton("Lawan AI");
+        onlineMultiplayer = new JRadioButton("Online Multiplayer");
+
         ButtonGroup modeGroup = new ButtonGroup();
         modeGroup.add(twoPlayerLocal);
         modeGroup.add(vsAI);
@@ -51,7 +52,7 @@ public class welcomePanel extends JPanel {
         add(onlineMultiplayer, gbc);
 
         gbc.gridy++;
-        JLabel difficultyLabel = new JLabel("AI Difficulty:");
+        JLabel difficultyLabel = new JLabel("Tingkat Kesulitan AI:");
         JComboBox<String> difficultyBox = new JComboBox<>(new String[]{"Easy", "Medium", "Hard"});
         difficultyLabel.setEnabled(false);
         difficultyBox.setEnabled(false);
@@ -59,7 +60,7 @@ public class welcomePanel extends JPanel {
         gbc.gridx = 1; add(difficultyBox, gbc);
 
         gbc.gridy++;
-        JLabel usernameLabel = new JLabel("Your Username:");
+        JLabel usernameLabel = new JLabel("Username:");
         usernameField = new JTextField(10);
         usernameLabel.setEnabled(false);
         usernameField.setEnabled(false);
@@ -67,7 +68,7 @@ public class welcomePanel extends JPanel {
         gbc.gridx = 1; add(usernameField, gbc);
 
         gbc.gridy++;
-        JLabel gameIdLabel = new JLabel("Game ID (Kosongkan utk Buat Baru):");
+        JLabel gameIdLabel = new JLabel("Game ID:");
         gameIdField = new JTextField(15);
         gameIdLabel.setEnabled(false);
         gameIdField.setEnabled(false);
@@ -76,69 +77,66 @@ public class welcomePanel extends JPanel {
 
         ActionListener modeListener = e -> {
             boolean isVsAI = vsAI.isSelected();
-            boolean isOnlineMultiplayer = onlineMultiplayer.isSelected();
+            boolean isOnline = onlineMultiplayer.isSelected();
 
             difficultyLabel.setEnabled(isVsAI);
             difficultyBox.setEnabled(isVsAI);
-
-            usernameLabel.setEnabled(isOnlineMultiplayer);
-            usernameField.setEnabled(isOnlineMultiplayer);
-            gameIdLabel.setEnabled(isOnlineMultiplayer);
-            gameIdField.setEnabled(isOnlineMultiplayer);
+            usernameLabel.setEnabled(isOnline);
+            usernameField.setEnabled(isOnline);
+            gameIdLabel.setEnabled(isOnline);
+            gameIdField.setEnabled(isOnline);
         };
+
         twoPlayerLocal.addActionListener(modeListener);
         vsAI.addActionListener(modeListener);
         onlineMultiplayer.addActionListener(modeListener);
 
-        gbc.gridx = 0;
         gbc.gridy++;
-        JLabel timerLabel = new JLabel("Time per Turn (s):");
+        gbc.gridx = 0;
+        JLabel timerLabel = new JLabel("Waktu per Giliran (detik):");
         JComboBox<String> timerBox = new JComboBox<>(new String[]{"5", "10", "15", "30"});
         timerBox.setSelectedIndex(1);
-
         add(timerLabel, gbc);
         gbc.gridx = 1;
         add(timerBox, gbc);
 
-        gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
-        JButton startButton = new JButton("Start Game");
-        startButton.setFont(new Font("Arial", Font.BOLD, 14));
-        add(startButton, gbc);
+        JButton playButton = new JButton("Mulai");
+        playButton.setFont(new Font("Arial", Font.BOLD, 14));
+        add(playButton, gbc);
 
-        startButton.addActionListener(e -> {
+        playButton.addActionListener(e -> {
             int selectedTime = Integer.parseInt((String) timerBox.getSelectedItem());
 
             if (twoPlayerLocal.isSelected()) {
                 GameMain gamePanel = new GameMain(false, "None", selectedTime, null, null, true);
                 parentFrame.setContentPane(gamePanel);
-                parentFrame.revalidate();
-                parentFrame.repaint();
             } else if (vsAI.isSelected()) {
                 String selectedDifficulty = (String) difficultyBox.getSelectedItem();
                 GameMain gamePanel = new GameMain(true, selectedDifficulty, selectedTime, null, null, true);
                 parentFrame.setContentPane(gamePanel);
-                parentFrame.revalidate();
-                parentFrame.repaint();
             } else if (onlineMultiplayer.isSelected()) {
                 String username = usernameField.getText().trim();
                 String gameIdInput = gameIdField.getText().trim();
 
                 if (username.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Please enter your username.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Masukkan username Anda.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 if (gameIdInput.isEmpty()) {
                     String newGameId = UUID.randomUUID().toString();
-                    JOptionPane.showMessageDialog(this, "Game created! Share this ID: " + newGameId + "\nYou are Player X (Cross).", "Game Created", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Game dibuat! ID: " + newGameId, "Game Created", JOptionPane.INFORMATION_MESSAGE);
                     startGameOnline(newGameId, username, selectedTime, true);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Attempting to join game: " + gameIdInput + "\nYou are Player O (Nought).", "Joining Game", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Bergabung ke Game ID: " + gameIdInput, "Joining Game", JOptionPane.INFORMATION_MESSAGE);
                     startGameOnline(gameIdInput, username, selectedTime, false);
                 }
             }
+
+            parentFrame.revalidate();
+            parentFrame.repaint();
         });
     }
 
