@@ -130,4 +130,53 @@ public class Board {
             g2.drawLine(winStartX, winStartY, winEndX, winEndY);
         }
     }
+    // Cek apakah pemain tertentu sedang menang
+    public boolean isWinning(Seed player) {
+        // Cek baris
+        for (int row = 0; row < ROWS; row++) {
+            if (cells[row][0].content == player &&
+                    cells[row][1].content == player &&
+                    cells[row][2].content == player) {
+                return true;
+            }
+        }
+
+        // Cek kolom
+        for (int col = 0; col < COLS; col++) {
+            if (cells[0][col].content == player &&
+                    cells[1][col].content == player &&
+                    cells[2][col].content == player) {
+                return true;
+            }
+        }
+
+        // Cek diagonal utama
+        if (cells[0][0].content == player &&
+                cells[1][1].content == player &&
+                cells[2][2].content == player) {
+            return true;
+        }
+
+        // Cek diagonal lawan
+        if (cells[0][2].content == player &&
+                cells[1][1].content == player &&
+                cells[2][0].content == player) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Cek apakah semua cell sudah terisi (untuk minimax)
+    public boolean isFull() {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLS; col++) {
+                if (cells[row][col].content == Seed.NO_SEED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 }

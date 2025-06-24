@@ -1,37 +1,78 @@
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
 
 public class welcomePanel extends JPanel {
+    private JFrame parentFrame;
+
     public welcomePanel(JFrame frame) {
-        setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 220)); // Warna krem
+        this.parentFrame = frame;
+        setLayout(new GridBagLayout());
+        setBackground(new Color(245, 245, 220)); // krem
 
-        JLabel title = new JLabel("Welcome to Tic Tac Toe!", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 26));
-        title.setBorder(BorderFactory.createEmptyBorder(50, 0, 30, 0));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        JLabel title = new JLabel("Tic-Tac-Toe");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setHorizontalAlignment(JLabel.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        add(title, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+        JRadioButton twoPlayer = new JRadioButton("2 Player");
+        JRadioButton vsAI = new JRadioButton("vs AI");
+        ButtonGroup modeGroup = new ButtonGroup();
+        modeGroup.add(twoPlayer);
+        modeGroup.add(vsAI);
+        twoPlayer.setSelected(true);
+
+        add(twoPlayer, gbc);
+        gbc.gridx = 1;
+        add(vsAI, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel difficultyLabel = new JLabel("AI Difficulty:");
+        JComboBox<String> difficultyBox = new JComboBox<>(new String[]{"Easy", "Medium", "Hard"});
+        difficultyLabel.setEnabled(false);
+        difficultyBox.setEnabled(false);
+
+        add(difficultyLabel, gbc);
+        gbc.gridx = 1;
+        add(difficultyBox, gbc);
+
+        // Toggle difficulty dropdown only if vsAI selected
+        vsAI.addActionListener(e -> {
+            difficultyLabel.setEnabled(true);
+            difficultyBox.setEnabled(true);
+        });
+        twoPlayer.addActionListener(e -> {
+            difficultyLabel.setEnabled(false);
+            difficultyBox.setEnabled(false);
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 2;
         JButton startButton = new JButton("Start Game");
-        startButton.setFont(new Font("Arial", Font.BOLD, 18));
-        startButton.setBackground(new Color(0, 128, 0));
-        startButton.setForeground(Color.WHITE);
-        startButton.setFocusPainted(false);
-        startButton.setPreferredSize(new Dimension(200, 50));
+        startButton.setFont(new Font("Arial", Font.BOLD, 14));
+        add(startButton, gbc);
 
-        // Panel untuk tombol di tengah
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(new Color(245, 245, 220));
-        buttonPanel.add(startButton);
-
-        add(title, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.CENTER);
-
-        // Action saat tombol diklik
         startButton.addActionListener(e -> {
-            GameMain gamePanel = new GameMain();
-            frame.setContentPane(gamePanel);
-            frame.revalidate();
-            gamePanel.requestFocusInWindow();
+            boolean isVsAI = vsAI.isSelected();
+            String selectedDifficulty = (String) difficultyBox.getSelectedItem();
+            if (!isVsAI) selectedDifficulty = "None"; // Untuk 2 Player mode
+
+            // Panggil GameMain dengan info AI level
+            GameMain gamePanel = new GameMain(isVsAI, selectedDifficulty);
+            parentFrame.setContentPane(gamePanel);
+            parentFrame.revalidate();
+            parentFrame.repaint();
         });
     }
 }
