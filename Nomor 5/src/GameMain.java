@@ -253,9 +253,22 @@ public class GameMain extends JPanel {
                 moveTimer.stop();
                 if (!isOnlineMultiplayer) {
                     currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
-                    startTimer();
+                    repaint();
+
+                    if (vsComputer && currentPlayer == Seed.NOUGHT) {
+                        Timer aiTimer = new Timer(300, evt -> {
+                            computerMove();
+                            repaint();
+                            if (currentState == State.PLAYING) {
+                                startTimer();
+                            }
+                        });
+                        aiTimer.setRepeats(false);
+                        aiTimer.start();
+                    } else {
+                        startTimer();
+                    }
                 }
-                repaint();
             }
         });
         moveTimer.start();
