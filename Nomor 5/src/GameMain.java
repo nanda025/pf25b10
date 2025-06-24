@@ -73,9 +73,11 @@ public class GameMain extends JPanel {
 
                     if (isOnlineMultiplayer) {
                         sendMoveToDatabase(row, col);
+                        hasMovedThisTurn = true;
                         stopTimer();
                     } else {
                         currentState = board.stepGame(currentPlayer, row, col);
+                        hasMovedThisTurn = true;
                         stopTimer();
 
                         if (currentState == State.PLAYING) {
@@ -104,6 +106,7 @@ public class GameMain extends JPanel {
                 }
             }
         });
+
 
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
@@ -459,6 +462,8 @@ public class GameMain extends JPanel {
     @Override
     public void removeNotify() {
         super.removeNotify();
+        // Ketika komponen dihapus dari hirarki, ini dipanggil
+        // Hentikan scheduler untuk menghindari memory leak atau thread yang berjalan di latar belakang
         stopPolling();
     }
 }
