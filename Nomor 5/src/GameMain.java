@@ -27,6 +27,9 @@ public class GameMain extends JPanel {
     private int turnTime;
     private int timeLeft;
     private Timer moveTimer;
+    private boolean hasMovedThisTurn = false;
+
+
 
     // --- VARIABEL BARU UNTUK MULTIPLAYER ONLINE ---
     private boolean isOnlineMultiplayer = false;
@@ -41,9 +44,9 @@ public class GameMain extends JPanel {
     // Konstruktor baru dengan parameter multiplayer
     public GameMain(boolean isVsAI, String aiDifficulty, int timePerTurn, String gameId, String username, Boolean amIPlayer1Cross)
     {
-        this.vsComputer = vsComputer;
-        this.aiLevel = (aiLevel != null) ? aiLevel.toLowerCase() : "none";
-        this.turnTime = turnTime;
+        this.vsComputer = isVsAI;
+        this.aiLevel = (aiDifficulty != null) ? aiDifficulty.toLowerCase() : "none";
+        this.turnTime = timePerTurn;
         this.onlineGameId = onlineGameId;
         this.myUsername = myUsername;
         this.amIPlayer1Cross = amIPlayer1Cross;
@@ -51,9 +54,8 @@ public class GameMain extends JPanel {
         super.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Jika game sudah selesai, klik akan memulai game baru (baik lokal maupun online)
                 if (currentState != State.PLAYING) {
-                    newGame(); // Reset game
+                    newGame(); // Reset game jika game sudah selesai
                     repaint();
                     return;
                 }
@@ -63,7 +65,7 @@ public class GameMain extends JPanel {
                     Seed mySeed = amIPlayer1Cross ? Seed.CROSS : Seed.NOUGHT;
                     if (currentPlayer != mySeed) {
                         System.out.println("Bukan giliran Anda.");
-                        return; // Bukan giliran pemain ini
+                        return;
                     }
                 }
 
@@ -76,11 +78,13 @@ public class GameMain extends JPanel {
                         board.cells[row][col].content == Seed.NO_SEED) {
 
                     if (isOnlineMultiplayer) {
-                        // Untuk Multiplayer Online: Masukkan gerakan ke database
+                        // Multiplayer Online: kirim ke database
                         sendMoveToDatabase(row, col);
+                        stopTimer(); // Hentikan timer giliran saya
                     } else {
-                        // Untuk Mode Lokal / AI: Lakukan gerakan secara lokal
+                        // Mode Lokal / AI
                         currentState = board.stepGame(currentPlayer, row, col);
+                        stopTimer();
 
                         if (currentState == State.PLAYING) {
                             SoundEffect.EAT_FOOD.play();
@@ -91,13 +95,19 @@ public class GameMain extends JPanel {
                         currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                         repaint();
 
+                        // Jika lawan adalah komputer
                         if (vsComputer && currentPlayer == Seed.NOUGHT && currentState == State.PLAYING) {
                             Timer aiTimer = new Timer(300, evt -> {
-                                computerMove();
+                                computerMove(); // AI melakukan langkah
                                 repaint();
+                                if (currentState == State.PLAYING) {
+                                    startTimer(); // Timer dimulai untuk giliran player
+                                }
                             });
                             aiTimer.setRepeats(false);
                             aiTimer.start();
+                        } else if (currentState == State.PLAYING) {
+                            startTimer(); // Timer dimulai untuk giliran berikutnya
                         }
                     }
                 }
@@ -120,6 +130,14 @@ public class GameMain extends JPanel {
         countdownLabel.setPreferredSize(new Dimension(100, 30));
         countdownLabel.setHorizontalAlignment(JLabel.RIGHT);
         countdownLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
+
+        JPanel infoPanel = new JPanel(new BorderLayout());
+        infoPanel.setBackground(COLOR_BG_STATUS);
+        infoPanel.add(countdownLabel, BorderLayout.EAST); // Tambahkan countdown ke kanan
+
+        super.add(infoPanel, BorderLayout.NORTH); // Letakkan infoPanel di atas papan
+
+
 
         JButton restartButton = new JButton("Restart");
         restartButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -145,7 +163,12 @@ public class GameMain extends JPanel {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.add(soundToggle, BorderLayout.WEST);
         bottomPanel.add(statusBar, BorderLayout.CENTER);
-        bottomPanel.add(restartButton, BorderLayout.EAST);
+
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.add(countdownLabel);
+        rightPanel.add(restartButton);
+        bottomPanel.add(rightPanel, BorderLayout.EAST);
+
 
         super.setLayout(new BorderLayout());
         // Load background image
@@ -220,35 +243,65 @@ public class GameMain extends JPanel {
         startTimer();
     }
 
+    private long startTime; // waktu mulai giliran dalam ms
+
     private void startTimer() {
+        // Hentikan timer lama jika ada
         stopTimer();
+
+        // Reset status giliran
+        hasMovedThisTurn = false;
+
+        // Simpan waktu mulai giliran
+        startTime = System.currentTimeMillis();
+
+        // Atur sisa waktu awal
         timeLeft = turnTime;
         countdownLabel.setText("Time: " + timeLeft);
 
-        moveTimer = new Timer(1000, e -> {
-            timeLeft--;
-            countdownLabel.setText("Time: " + timeLeft);
-
-            if (timeLeft <= 0) {
+        // Timer berjalan setiap 200ms untuk responsif
+        moveTimer = new Timer(200, e -> {
+            // Jika pemain sudah bergerak, hentikan timer
+            if (hasMovedThisTurn) {
                 moveTimer.stop();
-                if (!isOnlineMultiplayer) { // Hanya jika mode lokal
+                return;
+            }
+
+            // Hitung waktu berlalu dalam detik
+            long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+            int remainingSeconds = turnTime - (int) elapsedSeconds;
+
+            // Perbarui label hanya jika ada perubahan
+            if (remainingSeconds != timeLeft) {
+                timeLeft = remainingSeconds;
+                countdownLabel.setText("Time: " + timeLeft);
+            }
+
+            // Jika waktu habis
+            if (remainingSeconds <= 0) {
+                moveTimer.stop();
+
+                if (!isOnlineMultiplayer) {
+                    // Ganti giliran di mode lokal
                     currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+                    startTimer(); // Mulai timer untuk giliran berikutnya
                 }
-                // Di mode online, pergantian giliran dikelola oleh update dari DB,
-                // bukan oleh timer lokal ini. Timer ini hanya untuk hitung mundur giliran
-                // jika giliran adalah milik kita.
+
                 repaint();
-                startTimer();
             }
         });
+
         moveTimer.start();
     }
+
+
 
     private void stopTimer() {
         if (moveTimer != null && moveTimer.isRunning()) {
             moveTimer.stop();
         }
     }
+
 
     private void computerMove() {
         if (currentState != State.PLAYING) return;

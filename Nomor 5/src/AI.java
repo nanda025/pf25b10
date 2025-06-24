@@ -18,19 +18,20 @@ public class AI {
     }
 
     public Point getMove() {
+        if (board == null) return null;
+
         switch (level) {
             case "easy":
                 return getRandomMove();
             case "medium":
                 return getMediumMove();
             case "hard":
-                return getBestMove();  // basic minimax
+                return getBestMove();  // minimax sederhana
             default:
                 return getRandomMove();
         }
     }
 
-    // ===== LEVEL EASY: random move =====
     private Point getRandomMove() {
         List<Point> availableMoves = new ArrayList<>();
         for (int row = 0; row < Board.ROWS; row++) {
@@ -43,41 +44,33 @@ public class AI {
         return availableMoves.isEmpty() ? null : availableMoves.get(rand.nextInt(availableMoves.size()));
     }
 
-    // ===== LEVEL MEDIUM: try to win or block =====
     private Point getMediumMove() {
-        // 1. Try to win
-        for (int row = 0; row < Board.ROWS; row++) {
-            for (int col = 0; col < Board.COLS; col++) {
-                if (board.cells[row][col].content == Seed.NO_SEED) {
-                    board.cells[row][col].content = aiSeed;
-                    if (board.isWinning(aiSeed)) {
-                        board.cells[row][col].content = Seed.NO_SEED;
-                        return new Point(row, col);
-                    }
-                    board.cells[row][col].content = Seed.NO_SEED;
-                }
-            }
-        }
+        // 1. Menang jika bisa
+        Point winMove = canWinAt(aiSeed);
+        if (winMove != null) return winMove;
 
-        // 2. Try to block
-        for (int row = 0; row < Board.ROWS; row++) {
-            for (int col = 0; col < Board.COLS; col++) {
-                if (board.cells[row][col].content == Seed.NO_SEED) {
-                    board.cells[row][col].content = playerSeed;
-                    if (board.isWinning(playerSeed)) {
-                        board.cells[row][col].content = Seed.NO_SEED;
-                        return new Point(row, col);
-                    }
-                    board.cells[row][col].content = Seed.NO_SEED;
-                }
-            }
-        }
+        // 2. Blokir lawan jika hampir menang
+        Point blockMove = canWinAt(playerSeed);
+        if (blockMove != null) return blockMove;
 
-        // 3. Else random
+        // 3. Random kalau tidak ada
         return getRandomMove();
     }
 
-    // ===== LEVEL HARD: minimax simple version =====
+    private Point canWinAt(Seed seed) {
+        for (int row = 0; row < Board.ROWS; row++) {
+            for (int col = 0; col < Board.COLS; col++) {
+                if (board.cells[row][col].content == Seed.NO_SEED) {
+                    board.cells[row][col].content = seed;
+                    boolean isWinning = board.isWinning(seed);
+                    board.cells[row][col].content = Seed.NO_SEED;
+                    if (isWinning) return new Point(row, col);
+                }
+            }
+        }
+        return null;
+    }
+
     private Point getBestMove() {
         int bestScore = Integer.MIN_VALUE;
         Point bestMove = null;
@@ -86,7 +79,7 @@ public class AI {
             for (int col = 0; col < Board.COLS; col++) {
                 if (board.cells[row][col].content == Seed.NO_SEED) {
                     board.cells[row][col].content = aiSeed;
-                    int score = minimax(false);
+                    int score = minimax(0, false);
                     board.cells[row][col].content = Seed.NO_SEED;
 
                     if (score > bestScore) {
@@ -100,9 +93,9 @@ public class AI {
         return bestMove;
     }
 
-    private int minimax(boolean isMaximizing) {
-        if (board.isWinning(aiSeed)) return 10;
-        if (board.isWinning(playerSeed)) return -10;
+    private int minimax(int depth, boolean isMaximizing) {
+        if (board.isWinning(aiSeed)) return 10 - depth;
+        if (board.isWinning(playerSeed)) return depth - 10;
         if (board.isFull()) return 0;
 
         int bestScore = isMaximizing ? Integer.MIN_VALUE : Integer.MAX_VALUE;
@@ -111,11 +104,12 @@ public class AI {
             for (int col = 0; col < Board.COLS; col++) {
                 if (board.cells[row][col].content == Seed.NO_SEED) {
                     board.cells[row][col].content = isMaximizing ? aiSeed : playerSeed;
-                    int score = minimax(!isMaximizing);
+                    int score = minimax(depth + 1, !isMaximizing);
                     board.cells[row][col].content = Seed.NO_SEED;
 
                     bestScore = isMaximizing ?
-                            Math.max(score, bestScore) : Math.min(score, bestScore);
+                            Math.max(score, bestScore) :
+                            Math.min(score, bestScore);
                 }
             }
         }
@@ -123,4 +117,3 @@ public class AI {
         return bestScore;
     }
 }
-
