@@ -100,12 +100,21 @@ public class welcomePanel extends JPanel {
         instructions.setEditable(false);
         instructions.setFont(new Font("Monospaced", Font.PLAIN, 14));
         instructions.setOpaque(false);
-        instructions.setForeground(Color.WHITE);
+        instructions.setOpaque(false);
+        instructions.setBackground(new Color(0, 0, 0, 0));
+        instructions.setLineWrap(true);
+        instructions.setWrapStyleWord(true);
+
 
         JScrollPane scrollPane = new JScrollPane(instructions);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        scrollPane.setBackground(new Color(0, 0, 0, 0));
+        scrollPane.getViewport().setBackground(new Color(0, 0, 0, 0));
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
 
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(new Dimension(100, 30));
