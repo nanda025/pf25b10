@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 
 public class GameMain extends JPanel {
     private static final long serialVersionUID = 1L;
-
     public static final String TITLE = "Kelompok B10";
     public static final Color COLOR_BG = new Color(245, 245, 220);
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);

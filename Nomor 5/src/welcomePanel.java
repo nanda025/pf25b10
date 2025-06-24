@@ -15,7 +15,8 @@ public class welcomePanel extends JPanel {
 
     public welcomePanel(JFrame frame) {
         this.parentFrame = frame;
-        this.backgroundImage = new ImageIcon("image/welcome.jpeg").getImage();
+        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background2.jpg")).getImage();
+
         setLayout(new GridBagLayout());
         setOpaque(false);
 
