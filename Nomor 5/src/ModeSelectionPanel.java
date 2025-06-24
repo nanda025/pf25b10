@@ -10,6 +10,10 @@ public class ModeSelectionPanel extends JPanel {
     private JTextField usernameField;
     private JTextField gameIdField;
     private JComboBox<String> difficultyBox;
+    private JTextField player1Field;
+    private JTextField player2Field;
+    private JLabel player1Label;
+    private JLabel player2Label;
     private JComboBox<String> timerBox;
     private JRadioButton twoPlayerLocal, vsAI, onlineMultiplayer;
     private Image backgroundImage;
@@ -29,7 +33,7 @@ public class ModeSelectionPanel extends JPanel {
 
         JLabel title = new JLabel("Pilih Mode Permainan");
         title.setFont(new Font("Arial", Font.BOLD, 20));
-        title.setForeground(Color.WHITE);
+        title.setForeground(Color.BLACK);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -98,6 +102,22 @@ public class ModeSelectionPanel extends JPanel {
 
         gbc.gridy++;
         gbc.gridx = 0;
+        player1Label = new JLabel("Nama Pemain 1:");
+        player1Field = new JTextField(10);
+        add(player1Label, gbc);
+        gbc.gridx = 1;
+        add(player1Field, gbc);
+
+        gbc.gridy++;
+        gbc.gridx = 0;
+        player2Label = new JLabel("Nama Pemain 2:");
+        player2Field = new JTextField(10);
+        add(player2Label, gbc);
+        gbc.gridx = 1;
+        add(player2Field, gbc);
+
+        gbc.gridy++;
+        gbc.gridx = 0;
         gbc.gridwidth = 2;
         JButton startButton = new JButton("Mulai Game");
         add(startButton, gbc);
@@ -110,12 +130,17 @@ public class ModeSelectionPanel extends JPanel {
         ActionListener modeListener = e -> {
             boolean isVsAI = vsAI.isSelected();
             boolean isOnline = onlineMultiplayer.isSelected();
+            boolean isTwoPlayer = twoPlayerLocal.isSelected();
             difficultyLabel.setEnabled(isVsAI);
             difficultyBox.setEnabled(isVsAI);
             usernameLabel.setEnabled(isOnline);
             usernameField.setEnabled(isOnline);
             gameIdLabel.setEnabled(isOnline);
             gameIdField.setEnabled(isOnline);
+            player1Label.setVisible(isTwoPlayer);
+            player1Field.setVisible(isTwoPlayer);
+            player2Label.setVisible(isTwoPlayer);
+            player2Field.setVisible(isTwoPlayer);
         };
         twoPlayerLocal.addActionListener(modeListener);
         vsAI.addActionListener(modeListener);
@@ -125,12 +150,18 @@ public class ModeSelectionPanel extends JPanel {
             int time = Integer.parseInt((String) timerBox.getSelectedItem());
 
             if (twoPlayerLocal.isSelected()) {
-                GameMain game = new GameMain(false, "None", time, null, null, true);
+                String p1 = player1Field.getText().trim();
+                String p2 = player2Field.getText().trim();
+                if (p1.isEmpty() || p2.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Masukkan nama kedua pemain.");
+                    return;
+                }
+                GameMain game = new GameMain(false, "None", time, null, null, true, p1, p2);
                 parentFrame.setContentPane(game);
                 parentFrame.revalidate();
             } else if (vsAI.isSelected()) {
                 String difficulty = (String) difficultyBox.getSelectedItem();
-                GameMain game = new GameMain(true, difficulty, time, null, null, true);
+                GameMain game = new GameMain(true, difficulty, time, null, null, true, null, null);
                 parentFrame.setContentPane(game);
                 parentFrame.revalidate();
             } else {
@@ -141,7 +172,6 @@ public class ModeSelectionPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Masukkan username.");
                     return;
                 }
-
                 if (id.isEmpty()) {
                     id = UUID.randomUUID().toString();
                     JOptionPane.showMessageDialog(this, "Game dibuat! ID: " + id);
@@ -157,7 +187,7 @@ public class ModeSelectionPanel extends JPanel {
     }
 
     private void startOnlineGame(String id, String username, int time, boolean isPlayer1) {
-        GameMain game = new GameMain(false, "None", time, id, username, isPlayer1);
+        GameMain game = new GameMain(false, "None", time, id, username, isPlayer1, null, null);
         game.setOnlineMultiplayer(true, username, isPlayer1);
         parentFrame.setContentPane(game);
         parentFrame.revalidate();

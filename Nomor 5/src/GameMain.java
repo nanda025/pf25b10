@@ -9,7 +9,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class GameMain extends JPanel {
-    private static final long serialVersionUID = 1L;
     public static final String TITLE = "Kelompok B10";
     public static final Color COLOR_BG = new Color(245, 245, 220);
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
@@ -40,14 +39,17 @@ public class GameMain extends JPanel {
     private ScheduledExecutorService scheduler;
     private Image backgroundImage;
 
-    public GameMain(boolean isVsAI, String aiDifficulty, int timePerTurn, String gameId, String username, Boolean amIPlayer1Cross)
-    {
+    private String player1Name;
+    private String player2Name;
+    public GameMain(boolean isVsAI, String aiDifficulty, int timePerTurn, String gameId, String username, Boolean amIPlayer1Cross, String player1Name, String player2Name) {
         this.vsComputer = isVsAI;
         this.aiLevel = (aiDifficulty != null) ? aiDifficulty.toLowerCase() : "none";
         this.turnTime = timePerTurn;
-        this.onlineGameId = onlineGameId;
-        this.myUsername = myUsername;
-        this.amIPlayer1Cross = amIPlayer1Cross;
+        this.onlineGameId = gameId;
+        this.myUsername = username;
+        this.amIPlayer1Cross = amIPlayer1Cross != null ? amIPlayer1Cross : true;
+        this.player1Name = player1Name != null ? player1Name : "Player 1";
+        this.player2Name = player2Name != null ? player2Name : "Player 2";
 
         super.addMouseListener(new MouseAdapter() {
             @Override
@@ -57,7 +59,6 @@ public class GameMain extends JPanel {
                     repaint();
                     return;
                 }
-
                 if (isOnlineMultiplayer) {
                     Seed mySeed = amIPlayer1Cross ? Seed.CROSS : Seed.NOUGHT;
                     if (currentPlayer != mySeed) {
@@ -65,7 +66,6 @@ public class GameMain extends JPanel {
                         return;
                     }
                 }
-
                 int mouseX = e.getX();
                 int mouseY = e.getY();
                 int row = mouseY / Cell.SIZE;
@@ -82,13 +82,6 @@ public class GameMain extends JPanel {
                         currentState = board.stepGame(currentPlayer, row, col);
                         hasMovedThisTurn = true;
                         stopTimer();
-
-                        if (currentState == State.PLAYING) {
-                            SoundEffect.EAT_FOOD.play();
-                        } else {
-                            SoundEffect.DIE.play();
-                        }
-
                         currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                         repaint();
 
@@ -109,7 +102,6 @@ public class GameMain extends JPanel {
                 }
             }
         });
-
 
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
@@ -412,6 +404,7 @@ public class GameMain extends JPanel {
         } else {
             setBackground(COLOR_BG);
         }
+
         board.paint(g);
 
         if (currentState == State.CROSS_WON || currentState == State.NOUGHT_WON || currentState == State.DRAW) {
@@ -426,6 +419,8 @@ public class GameMain extends JPanel {
             g.drawString(msg, x, y);
             stopPolling();
         }
+
+        // Status bar update
         if (isOnlineMultiplayer) {
             statusBar.setForeground(Color.BLACK);
             if (currentState == State.PLAYING) {
@@ -449,44 +444,53 @@ public class GameMain extends JPanel {
         } else {
             if (currentState == State.PLAYING) {
                 statusBar.setForeground(Color.BLACK);
-                statusBar.setText((currentPlayer == Seed.CROSS) ? "X's Turn" : "O's Turn");
+                if (player1Name != null && player2Name != null) {
+                    String name = (currentPlayer == Seed.CROSS) ? player1Name : player2Name;
+                    statusBar.setText("Giliran " + name + " (" + currentPlayer.getDisplayName() + ")");
+                } else {
+                    statusBar.setText((currentPlayer == Seed.CROSS) ? "X's Turn" : "O's Turn");
+                }
             } else if (currentState == State.DRAW) {
                 statusBar.setForeground(Color.RED);
                 statusBar.setText("It's a Draw! Click to play again.");
             } else if (currentState == State.CROSS_WON) {
                 statusBar.setForeground(Color.RED);
-                statusBar.setText("'X' Won! Click to play again.");
+                String winner = (player1Name != null) ? player1Name : "'X'";
+                statusBar.setText(winner + " Menang! Klik Restart.");
             } else if (currentState == State.NOUGHT_WON) {
                 statusBar.setForeground(Color.RED);
-                statusBar.setText("'O' Won! Click to play again.");
-            }
-
-            if (skipMessage != null) {
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setFont(new Font("Arial", Font.BOLD, 20));
-                FontMetrics fm = g2d.getFontMetrics();
-                int msgWidth = fm.stringWidth(skipMessage);
-                int msgHeight = fm.getHeight();
-
-                int padding = 12;
-                int boxWidth = msgWidth + 2 * padding;
-                int boxHeight = msgHeight + padding;
-
-                int x = (getWidth() - boxWidth) / 2;
-                int y = (getHeight() - boxHeight) / 2;
-
-                g2d.setColor(new Color(255, 255, 255, 220));
-                g2d.fillRoundRect(x, y, boxWidth, boxHeight, 15, 15);
-
-                g2d.setColor(Color.BLACK);
-                g2d.drawRoundRect(x, y, boxWidth, boxHeight, 15, 15);
-
-                int textX = x + padding;
-                int textY = y + padding + fm.getAscent() - 4;
-                g2d.drawString(skipMessage, textX, textY);
+                String winner = (player2Name != null) ? player2Name : "'O'";
+                statusBar.setText(winner + " Menang! Klik Restart.");
             }
         }
+
+        // Draw timeout message box
+        if (skipMessage != null) {
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setFont(new Font("Arial", Font.BOLD, 20));
+            FontMetrics fm = g2d.getFontMetrics();
+            int msgWidth = fm.stringWidth(skipMessage);
+            int msgHeight = fm.getHeight();
+
+            int padding = 12;
+            int boxWidth = msgWidth + 2 * padding;
+            int boxHeight = msgHeight + padding;
+
+            int x = (getWidth() - boxWidth) / 2;
+            int y = (getHeight() - boxHeight) / 2;
+
+            g2d.setColor(new Color(255, 255, 255, 220));
+            g2d.fillRoundRect(x, y, boxWidth, boxHeight, 15, 15);
+
+            g2d.setColor(Color.BLACK);
+            g2d.drawRoundRect(x, y, boxWidth, boxHeight, 15, 15);
+
+            int textX = x + padding;
+            int textY = y + padding + fm.getAscent() - 4;
+            g2d.drawString(skipMessage, textX, textY);
+        }
     }
+
 
     /**
      * The entry "main" method
@@ -504,7 +508,6 @@ public class GameMain extends JPanel {
             frame.setVisible(true);
         });
     }
-
     @Override
     public void addNotify() {
         super.addNotify();
