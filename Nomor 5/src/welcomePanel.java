@@ -46,6 +46,16 @@ public class welcomePanel extends JPanel {
         gbc.gridx = 1;
         add(difficultyBox, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel timerLabel = new JLabel("Time per Turn (s):");
+        JComboBox<String> timerBox = new JComboBox<>(new String[]{"5", "10", "15", "30"});
+        timerBox.setSelectedIndex(1); // default 10 detik
+
+        add(timerLabel, gbc);
+        gbc.gridx = 1;
+        add(timerBox, gbc);
+
         // Toggle difficulty dropdown only if vsAI selected
         vsAI.addActionListener(e -> {
             difficultyLabel.setEnabled(true);
@@ -68,8 +78,10 @@ public class welcomePanel extends JPanel {
             String selectedDifficulty = (String) difficultyBox.getSelectedItem();
             if (!isVsAI) selectedDifficulty = "None"; // Untuk 2 Player mode
 
+            int selectedTime = Integer.parseInt((String) timerBox.getSelectedItem());
+
             // Panggil GameMain dengan info AI level
-            GameMain gamePanel = new GameMain(isVsAI, selectedDifficulty);
+            GameMain gamePanel = new GameMain(isVsAI, selectedDifficulty, selectedTime);
             parentFrame.setContentPane(gamePanel);
             parentFrame.revalidate();
             parentFrame.repaint();
