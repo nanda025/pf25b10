@@ -22,15 +22,21 @@ public class GameMain extends JPanel {
     private State currentState;  // the current state of the game
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
+    private JLabel countdownLabel;
     private boolean vsComputer = true;
     private String aiLevel;
+    private int turnTime;
+    private int timeLeft;
+    private Timer moveTimer;
+
 
     /**
      * Constructor to setup the UI and game components
      */
-    public GameMain(boolean vsComputer, String aiLevel) {
+    public GameMain(boolean vsComputer, String aiLevel, int turnTime) {
         this.vsComputer = vsComputer;
         this.aiLevel = aiLevel.toLowerCase();
+        this.turnTime = turnTime;
 
         // This JPanel fires MouseEvent
         super.addMouseListener(new MouseAdapter() {
@@ -85,6 +91,14 @@ public class GameMain extends JPanel {
         statusBar.setHorizontalAlignment(JLabel.LEFT);
         statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
 
+        countdownLabel = new JLabel("Time: " + turnTime);
+        countdownLabel.setFont(FONT_STATUS);
+        countdownLabel.setBackground(COLOR_BG_STATUS);
+        countdownLabel.setOpaque(true);
+        countdownLabel.setPreferredSize(new Dimension(100, 30));
+        countdownLabel.setHorizontalAlignment(JLabel.RIGHT);
+        countdownLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
+
         JButton restartButton = new JButton("Restart");
         restartButton.setFont(new Font("Arial", Font.BOLD, 14));
         restartButton.setFocusPainted(false);
@@ -135,10 +149,45 @@ public class GameMain extends JPanel {
     public void newGame() {
         board.newGame();
         currentPlayer = Seed.CROSS;    // cross plays first
-        currentState = State.PLAYING;  // ready to play
+        currentState = State.PLAYING; // ready to play
+        repaint();
+        startTimer();
 
         if (vsComputer && currentPlayer == Seed.NOUGHT) {
             computerMove();
+        }
+    }
+
+    private void startTimer() {
+        stopTimer();
+        timeLeft = turnTime;
+        countdownLabel.setText("Time: " + timeLeft);
+
+        moveTimer = new Timer(1000, e -> {
+            timeLeft--;
+            countdownLabel.setText("Time: " + timeLeft);
+
+            if (timeLeft <= 0) {
+                moveTimer.stop();
+                currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+                repaint();
+                startTimer();
+            }
+        });
+        moveTimer.start();
+    }
+
+    private void stopTimer() {
+        if (moveTimer != null && moveTimer.isRunning()) {
+            moveTimer.stop();
+        }
+    }
+
+    private void playSound() {
+        if (currentState == State.PLAYING) {
+            SoundEffect.EAT_FOOD.play();
+        } else {
+            SoundEffect.DIE.play();
         }
     }
 
