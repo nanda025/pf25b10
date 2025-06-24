@@ -85,7 +85,7 @@ public class welcomePanel extends JPanel {
                 2. Pemain bergiliran menempatkan X dan O pada papan 3x3.
                 3. Pemain pertama yang membuat garis horizontal, vertikal, atau diagonal menang.
                 4. Jika semua kotak terisi dan tidak ada pemenang, maka permainan berakhir seri.
-                5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain selanjutnya
+                5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain berikutnya
                 6. Untuk mode AI, Anda akan bermain melawan komputer.
                 7. Untuk multiplayer online, masukkan ID Game dan nama pengguna Anda.
                 
