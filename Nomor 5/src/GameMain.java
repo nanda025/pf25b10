@@ -28,6 +28,9 @@ public class GameMain extends JPanel {
     private int timeLeft;
     private Timer moveTimer;
     private boolean hasMovedThisTurn = false;
+    private String skipMessage = null;
+    private long skipMessageStartTime = 0;
+
 
     private boolean isOnlineMultiplayer = false;
     private String myUsername;
@@ -252,8 +255,20 @@ public class GameMain extends JPanel {
             if (remainingSeconds <= 0) {
                 moveTimer.stop();
                 if (!isOnlineMultiplayer) {
+                    // Tampilkan pesan skip di tengah
+                    skipMessage = "TIMES OUT!";
+                    skipMessageStartTime = System.currentTimeMillis();
+
+                    // Ganti pemain
                     currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                     repaint();
+
+                    Timer clearMessageTimer = new Timer(1500, evt -> {
+                        skipMessage = null;
+                        repaint();
+                    });
+                    clearMessageTimer.setRepeats(false);
+                    clearMessageTimer.start();
 
                     if (vsComputer && currentPlayer == Seed.NOUGHT) {
                         Timer aiTimer = new Timer(300, evt -> {
@@ -270,6 +285,7 @@ public class GameMain extends JPanel {
                     }
                 }
             }
+
         });
         moveTimer.start();
     }
@@ -386,7 +402,6 @@ public class GameMain extends JPanel {
         }.execute();
     }
 
-
     /**
      * Custom painting codes on this JPanel
      */
@@ -446,6 +461,31 @@ public class GameMain extends JPanel {
             } else if (currentState == State.NOUGHT_WON) {
                 statusBar.setForeground(Color.RED);
                 statusBar.setText("'O' Won! Click to play again.");
+            }
+
+            if (skipMessage != null) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setFont(new Font("Arial", Font.BOLD, 20));
+                FontMetrics fm = g2d.getFontMetrics();
+                int msgWidth = fm.stringWidth(skipMessage);
+                int msgHeight = fm.getHeight();
+
+                int padding = 12;
+                int boxWidth = msgWidth + 2 * padding;
+                int boxHeight = msgHeight + padding;
+
+                int x = (getWidth() - boxWidth) / 2;
+                int y = (getHeight() - boxHeight) / 2;
+
+                g2d.setColor(new Color(255, 255, 255, 220));
+                g2d.fillRoundRect(x, y, boxWidth, boxHeight, 15, 15);
+
+                g2d.setColor(Color.BLACK);
+                g2d.drawRoundRect(x, y, boxWidth, boxHeight, 15, 15);
+
+                int textX = x + padding;
+                int textY = y + padding + fm.getAscent() - 4;
+                g2d.drawString(skipMessage, textX, textY);
             }
         }
     }
