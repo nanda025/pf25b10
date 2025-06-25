@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.Font;
 
 public class welcomePanel extends JPanel {
     private JFrame parentFrame;
@@ -12,7 +13,9 @@ public class welcomePanel extends JPanel {
         this.parentFrame = frame;
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
-        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background3.jpg")).getImage();
+        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background4.gif")).getImage();
+
+        setPreferredSize(new Dimension(420, 650));
 
         cardPanel.add(createMainMenu(), "MAIN_MENU");
         cardPanel.add(createGameSetupPanel(), "GAME_SETUP");
@@ -27,34 +30,58 @@ public class welcomePanel extends JPanel {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         };
         panel.setOpaque(false);
-        panel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15);
+        panel.setLayout(new BorderLayout());
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(50, 80, 50, 80));
 
         JButton startButton = new JButton("Mulai Permainan");
         JButton instructionButton = new JButton("Petunjuk Game");
         JButton exitButton = new JButton("Keluar");
 
-        startButton.setPreferredSize(new Dimension(180, 35));
-        instructionButton.setPreferredSize(new Dimension(180, 35));
-        exitButton.setPreferredSize(new Dimension(180, 35));
+        Dimension buttonSize = new Dimension(180, 35);
+        startButton.setPreferredSize(buttonSize);
+        instructionButton.setPreferredSize(buttonSize);
+        exitButton.setPreferredSize(buttonSize);
 
-        startButton.setBackground(new Color(59, 89, 182));
+        Font buttonFont = new Font("Goudy Stout", Font.PLAIN, 10);
+        startButton.setFont(buttonFont);
+        instructionButton.setFont(buttonFont);
+        exitButton.setFont(buttonFont);
+
+        // Mulai Permainan - warna putih
+        startButton.setBackground(new Color(59, 89, 182)); // Biru gelap
+        startButton.setForeground(Color.WHITE);
+
+        // Petunjuk Game - hijau
         instructionButton.setBackground(new Color(76, 175, 80));
         instructionButton.setForeground(Color.WHITE);
+
+        // Keluar - merah
         exitButton.setBackground(Color.RED);
         exitButton.setForeground(Color.WHITE);
 
-        gbc.gridy++;
-        panel.add(startButton, gbc);
-        gbc.gridy++;
-        panel.add(instructionButton, gbc);
-        gbc.gridy++;
-        panel.add(exitButton, gbc);
+        startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        instructionButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        buttonPanel.add(Box.createVerticalGlue());
+        buttonPanel.add(startButton);
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        buttonPanel.add(instructionButton);
+        buttonPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        buttonPanel.add(exitButton);
+        buttonPanel.add(Box.createVerticalGlue());
+
+        panel.add(buttonPanel, BorderLayout.SOUTH);
 
         startButton.addActionListener(e -> cardLayout.show(cardPanel, "GAME_SETUP"));
         instructionButton.addActionListener(e -> cardLayout.show(cardPanel, "INSTRUCTIONS"));
@@ -80,7 +107,7 @@ public class welcomePanel extends JPanel {
         JTextArea instructions = new JTextArea();
         instructions.setText("""
                 --- Petunjuk Permainan ---
-                
+
                 1. Tic Tac Toe dimainkan oleh dua pemain.
                 2. Pemain bergiliran menempatkan X dan O pada papan 3x3.
                 3. Pemain pertama yang membuat garis horizontal, vertikal, atau diagonal menang.
@@ -88,7 +115,7 @@ public class welcomePanel extends JPanel {
                 5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain berikutnya
                 6. Untuk mode AI, Anda akan bermain melawan komputer.
                 7. Untuk multiplayer online, masukkan ID Game dan nama pengguna Anda.
-                
+
                 Selamat bermain!
                 """);
         instructions.setEditable(false);
@@ -108,7 +135,7 @@ public class welcomePanel extends JPanel {
 
         JPanel whiteBox = new JPanel(new BorderLayout());
         whiteBox.setBackground(new Color(255, 255, 255, 230)); // semi-transparent
-        whiteBox.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        whiteBox.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
         whiteBox.add(scrollPane, BorderLayout.CENTER);
 
         // tombol kembali
