@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.Font;
 
 public class welcomePanel extends JPanel {
     private JFrame parentFrame;
@@ -13,16 +12,30 @@ public class welcomePanel extends JPanel {
         this.parentFrame = frame;
         this.cardLayout = new CardLayout();
         this.cardPanel = new JPanel(cardLayout);
-        this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background4.gif")).getImage();
+
+        // Load background image
+        try {
+            this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background4.gif")).getImage();
+        } catch (Exception e) {
+            System.err.println("Error loading background image: " + e.getMessage());
+            this.backgroundImage = null;
+        }
 
         setPreferredSize(new Dimension(420, 650));
 
+        // Tambah panel ke cardPanel
         cardPanel.add(createMainMenu(), "MAIN_MENU");
-        cardPanel.add(createGameSetupPanel(), "GAME_SETUP");
+
+        // Masukkan ModeSelectionPanel (yang akan memulai GameMain)
+        ModeSelectionPanel modeSelectionPanel = new ModeSelectionPanel(parentFrame, cardLayout, cardPanel);
+        cardPanel.add(modeSelectionPanel, "GAME_SETUP");
+
+        // Panel petunjuk
         cardPanel.add(createInstructionsPanel(), "INSTRUCTIONS");
 
         setLayout(new BorderLayout());
         add(cardPanel, BorderLayout.CENTER);
+        cardLayout.show(cardPanel, "MAIN_MENU");
     }
 
     private JPanel createMainMenu() {
@@ -30,9 +43,12 @@ public class welcomePanel extends JPanel {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.setColor(new Color(173, 216, 230));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
             }
         };
         panel.setOpaque(false);
@@ -48,30 +64,32 @@ public class welcomePanel extends JPanel {
         JButton exitButton = new JButton("Keluar");
 
         Dimension buttonSize = new Dimension(180, 35);
-        startButton.setPreferredSize(buttonSize);
-        instructionButton.setPreferredSize(buttonSize);
-        exitButton.setPreferredSize(buttonSize);
-
         Font buttonFont = new Font("Goudy Stout", Font.PLAIN, 10);
-        startButton.setFont(buttonFont);
-        instructionButton.setFont(buttonFont);
-        exitButton.setFont(buttonFont);
+        JButton[] buttons = {startButton, instructionButton, exitButton};
 
-        // Mulai Permainan - warna putih
-        startButton.setBackground(new Color(59, 89, 182)); // Biru gelap
+        for (JButton b : buttons) {
+            b.setPreferredSize(buttonSize);
+            b.setFont(buttonFont);
+            b.setAlignmentX(Component.CENTER_ALIGNMENT);
+        }
+
+        // Styling
+        startButton.setBackground(new Color(59, 89, 182));
         startButton.setForeground(Color.WHITE);
-
-        // Petunjuk Game - hijau
         instructionButton.setBackground(new Color(76, 175, 80));
         instructionButton.setForeground(Color.WHITE);
-
-        // Keluar - merah
         exitButton.setBackground(Color.RED);
         exitButton.setForeground(Color.WHITE);
 
-        startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        instructionButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        exitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Hover effect
+        startButton.addMouseListener(new HoverEffect(startButton, new Color(80, 120, 200), new Color(59, 89, 182)));
+        instructionButton.addMouseListener(new HoverEffect(instructionButton, new Color(100, 190, 100), new Color(76, 175, 80)));
+        exitButton.addMouseListener(new HoverEffect(exitButton, new Color(255, 100, 100), Color.RED));
+
+        // Button action
+        startButton.addActionListener(e -> cardLayout.show(cardPanel, "GAME_SETUP"));
+        instructionButton.addActionListener(e -> cardLayout.show(cardPanel, "INSTRUCTIONS"));
+        exitButton.addActionListener(e -> System.exit(0));
 
         buttonPanel.add(Box.createVerticalGlue());
         buttonPanel.add(startButton);
@@ -82,16 +100,7 @@ public class welcomePanel extends JPanel {
         buttonPanel.add(Box.createVerticalGlue());
 
         panel.add(buttonPanel, BorderLayout.SOUTH);
-
-        startButton.addActionListener(e -> cardLayout.show(cardPanel, "GAME_SETUP"));
-        instructionButton.addActionListener(e -> cardLayout.show(cardPanel, "INSTRUCTIONS"));
-        exitButton.addActionListener(e -> System.exit(0));
-
         return panel;
-    }
-
-    private JPanel createGameSetupPanel() {
-        return new ModeSelectionPanel(parentFrame, cardLayout, cardPanel); // Ini class dari sebelumnya
     }
 
     private JPanel createInstructionsPanel() {
@@ -99,22 +108,26 @@ public class welcomePanel extends JPanel {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    g.setColor(new Color(173, 216, 230));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
             }
         };
         panel.setOpaque(false);
 
-        JTextArea instructions = new JTextArea();
-        instructions.setText("""
+        JTextArea instructions = new JTextArea("""
                 --- Petunjuk Permainan ---
 
                 1. Tic Tac Toe dimainkan oleh dua pemain.
                 2. Pemain bergiliran menempatkan X dan O pada papan 3x3.
                 3. Pemain pertama yang membuat garis horizontal, vertikal, atau diagonal menang.
                 4. Jika semua kotak terisi dan tidak ada pemenang, maka permainan berakhir seri.
-                5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain berikutnya
+                5. Terdapat timer yang telah disediakan, apabila melewati batas waktu maka akan dilanjutkan oleh pemain berikutnya.
                 6. Untuk mode AI, Anda akan bermain melawan komputer.
-                7. Untuk multiplayer online, masukkan ID Game dan nama pengguna Anda.
+                7. Untuk multiplayer lokal, masukkan nama pemain sebelum memulai.
 
                 Selamat bermain!
                 """);
@@ -122,25 +135,23 @@ public class welcomePanel extends JPanel {
         instructions.setFont(new Font("Monospaced", Font.PLAIN, 14));
         instructions.setLineWrap(true);
         instructions.setWrapStyleWord(true);
-        instructions.setForeground(Color.BLACK);
-        instructions.setBackground(new Color(255, 255, 255)); // solid white
         instructions.setOpaque(true);
+        instructions.setBackground(new Color(255, 255, 255));
 
         JScrollPane scrollPane = new JScrollPane(instructions);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         JPanel whiteBox = new JPanel(new BorderLayout());
-        whiteBox.setBackground(new Color(255, 255, 255, 230)); // semi-transparent
+        whiteBox.setBackground(new Color(255, 255, 255, 230));
         whiteBox.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
         whiteBox.add(scrollPane, BorderLayout.CENTER);
 
-        // tombol kembali
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(new Dimension(100, 30));
+        backButton.addMouseListener(new HoverEffect(backButton, new Color(200, 200, 200), UIManager.getColor("Button.background")));
         backButton.addActionListener(e -> cardLayout.show(cardPanel, "MAIN_MENU"));
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -151,5 +162,42 @@ public class welcomePanel extends JPanel {
         panel.add(bottomPanel, BorderLayout.SOUTH);
 
         return panel;
+    }
+
+    // HoverEffect inner class
+    private static class HoverEffect extends MouseAdapter {
+        private final JButton button;
+        private final Color hoverColor, normalColor;
+
+        public HoverEffect(JButton button, Color hoverColor, Color normalColor) {
+            this.button = button;
+            this.hoverColor = hoverColor;
+            this.normalColor = normalColor;
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+            button.setBackground(hoverColor);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+            button.setBackground(normalColor);
+        }
+    }
+
+    // Jalankan dari sini
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Tic Tac Toe Game");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(420, 650);
+            frame.setResizable(false);
+            frame.setLocationRelativeTo(null);
+
+            welcomePanel welcome = new welcomePanel(frame);
+            frame.setContentPane(welcome);
+            frame.setVisible(true);
+        });
     }
 }
