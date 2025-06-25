@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.sound.sampled.*;
 
 public class GameMain extends JPanel {
     public static final String TITLE = "Kelompok B10";
@@ -20,6 +21,7 @@ public class GameMain extends JPanel {
     private Timer moveTimer;
     private boolean hasMovedThisTurn = false;
     private String skipMessage = null;
+    private boolean soundPlayed = false;
 
     private Image backgroundImage;
     private String player1Name;
@@ -34,16 +36,15 @@ public class GameMain extends JPanel {
 
         super.setLayout(new BorderLayout());
 
-        // Mouse event handler
         super.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                playClickSound();
                 if (currentState != State.PLAYING) {
                     newGame();
                     repaint();
                     return;
                 }
-
                 int mouseX = e.getX();
                 int mouseY = e.getY();
                 int row = mouseY / Cell.SIZE;
@@ -72,7 +73,6 @@ public class GameMain extends JPanel {
             }
         });
 
-        // Status bar
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
         statusBar.setBackground(COLOR_BG_STATUS);
@@ -81,7 +81,6 @@ public class GameMain extends JPanel {
         statusBar.setHorizontalAlignment(JLabel.LEFT);
         statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
 
-        // Countdown label
         countdownLabel = new JLabel("Time: " + turnTime);
         countdownLabel.setFont(FONT_STATUS);
         countdownLabel.setBackground(COLOR_BG_STATUS);
@@ -95,7 +94,6 @@ public class GameMain extends JPanel {
         infoPanel.add(countdownLabel, BorderLayout.EAST);
         super.add(infoPanel, BorderLayout.NORTH);
 
-        // Restart button
         JButton restartButton = new JButton("Restart");
         restartButton.setFont(new Font("Arial", Font.BOLD, 14));
         restartButton.setFocusPainted(false);
@@ -121,23 +119,20 @@ public class GameMain extends JPanel {
             System.err.println("Background image not found!");
             backgroundImage = null;
         }
-
         initGame();
         newGame();
     }
-
     private void initGame() {
         board = new Board();
     }
-
     private void newGame() {
         board.newGame();
         currentPlayer = Seed.CROSS;
         currentState = State.PLAYING;
+        soundPlayed = false;
         repaint();
         startTimer();
     }
-
     private void startTimer() {
         stopTimer();
         hasMovedThisTurn = false;
@@ -169,11 +164,9 @@ public class GameMain extends JPanel {
         });
         moveTimer.start();
     }
-
     private void stopTimer() {
         if (moveTimer != null && moveTimer.isRunning()) moveTimer.stop();
     }
-
     private void computerMove() {
         if (currentState != State.PLAYING) return;
         AI ai = new AI(board, currentPlayer, aiLevel);
@@ -183,7 +176,6 @@ public class GameMain extends JPanel {
             currentPlayer = Seed.CROSS;
         }
     }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -195,6 +187,12 @@ public class GameMain extends JPanel {
 
         board.paint(g);
 
+        if ((currentState == State.CROSS_WON || currentState == State.NOUGHT_WON) && !soundPlayed) {
+            boolean isPlayer1Win = (currentState == State.CROSS_WON && currentPlayer == Seed.NOUGHT) ||
+                    (currentState == State.NOUGHT_WON && currentPlayer == Seed.CROSS);
+            playWinOrLoseSound(isPlayer1Win);
+            soundPlayed = true;
+        }
         if (currentState == State.CROSS_WON || currentState == State.NOUGHT_WON || currentState == State.DRAW) {
             g.setFont(new Font("Arial", Font.BOLD, 36));
             g.setColor(Color.RED);
@@ -206,7 +204,6 @@ public class GameMain extends JPanel {
             int y = Board.CANVAS_HEIGHT / 2;
             g.drawString(msg, x, y);
         }
-
         if (currentState == State.PLAYING) {
             statusBar.setForeground(Color.BLACK);
             String name = (currentPlayer == Seed.CROSS) ? player1Name : player2Name;
@@ -219,7 +216,6 @@ public class GameMain extends JPanel {
             statusBar.setForeground(Color.RED);
             statusBar.setText(winner + " Menang! Klik Restart.");
         }
-
         if (skipMessage != null) {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setFont(new Font("Arial", Font.BOLD, 20));
@@ -236,6 +232,24 @@ public class GameMain extends JPanel {
             g2d.drawString(skipMessage, x + 12, y + fm.getAscent() + 6);
         }
     }
-
-    // Tidak ada method main() di sini.
+    private void playClickSound() {
+        playSound("click.wav");
+    }
+    private void playWinOrLoseSound(boolean isWin) {
+        if (isWin) {
+            playSound("menang.wav");
+        } else {
+            playSound("kalah.wav");
+        }
+    }
+    private void playSound(String fileName) {
+        try {
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(getClass().getResource("/audio/" + fileName));
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start();
+        } catch (Exception e) {
+            System.err.println("Sound error: " + e.getMessage());
+        }
+    }
 }

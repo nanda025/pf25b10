@@ -171,24 +171,19 @@ public class welcomePanel extends JPanel {
         backButton.addMouseListener(new HoverEffect(backButton, new Color(200, 200, 200), UIManager.getColor("Button.background")));
         backButton.addActionListener(e -> {
             cardLayout.show(cardPanel, "MAIN_MENU");
-            playSound("/audio/toy-story.wav");  // Restart musik saat kembali ke menu
+            playSound("/audio/toy-story.wav");
         });
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);
         bottomPanel.add(backButton);
-
         panel.add(whiteBox, BorderLayout.CENTER);
         panel.add(bottomPanel, BorderLayout.SOUTH);
-
         return panel;
     }
-
-    // --------------------- Sound Logic -----------------------
-
     private void playSound(String path) {
         try {
-            stopSound(); // kalau ada yang sedang main, stop dulu
+            stopSound();
             URL url = getClass().getResource(path);
             if (url == null) {
                 System.err.println("Sound file not found: " + path);
@@ -197,7 +192,7 @@ public class welcomePanel extends JPanel {
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
             clip = AudioSystem.getClip();
             clip.open(audioIn);
-            clip.start(); // .loop(Clip.LOOP_CONTINUOUSLY); bisa diganti kalau mau looping
+            clip.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -209,8 +204,6 @@ public class welcomePanel extends JPanel {
             clip.close();
         }
     }
-
-    // -------------------- Hover Effect ---------------------
     private static class HoverEffect extends MouseAdapter {
         private final JButton button;
         private final Color hoverColor, normalColor;
@@ -231,8 +224,6 @@ public class welcomePanel extends JPanel {
             button.setBackground(normalColor);
         }
     }
-
-    // -------------------- Main Method ---------------------
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Tic Tac Toe Game");

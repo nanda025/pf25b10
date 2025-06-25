@@ -1,7 +1,7 @@
-// ModeSelectionPanel.java
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.sound.sampled.*;
 
 public class ModeSelectionPanel extends JPanel {
     private JFrame parentFrame;
@@ -13,12 +13,16 @@ public class ModeSelectionPanel extends JPanel {
     private JComboBox<String> timerBox;
     private JRadioButton twoPlayerLocal, vsAI;
     private Image backgroundImage;
+    private Clip backgroundClip;
 
     public ModeSelectionPanel(JFrame frame, CardLayout layout, JPanel panel) {
         this.parentFrame = frame;
         this.cardLayout = layout;
         this.cardPanel = panel;
         this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background2.jpg")).getImage();
+
+        // Play background sound
+        playBackgroundSound();
 
         setLayout(new GridBagLayout());
         setOpaque(false);
@@ -114,6 +118,8 @@ public class ModeSelectionPanel extends JPanel {
             int time = Integer.parseInt((String) timerBox.getSelectedItem());
             boolean isVsAI = vsAI.isSelected();
 
+            stopBackgroundSound(); // stop sound when game starts
+
             if (isVsAI) {
                 String difficulty = (String) difficultyBox.getSelectedItem();
                 GameMain game = new GameMain(true, difficulty, time, "Player", "AI");
@@ -132,12 +138,34 @@ public class ModeSelectionPanel extends JPanel {
             }
         });
 
-        backButton.addActionListener(e -> cardLayout.show(cardPanel, "MAIN_MENU"));
+        backButton.addActionListener(e -> {
+            stopBackgroundSound(); // stop sound when going back
+            cardLayout.show(cardPanel, "MAIN_MENU");
+        });
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+    }
+
+    private void playBackgroundSound() {
+        try {
+            AudioInputStream inputStream = AudioSystem.getAudioInputStream(
+                    getClass().getResource("/audio/toy-story.wav"));
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(inputStream);
+            backgroundClip.start();
+        } catch (Exception e) {
+            System.err.println("Sound error: " + e.getMessage());
+        }
+    }
+
+    private void stopBackgroundSound() {
+        if (backgroundClip != null && backgroundClip.isRunning()) {
+            backgroundClip.stop();
+            backgroundClip.close();
+        }
     }
 }
