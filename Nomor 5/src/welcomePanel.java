@@ -1,12 +1,15 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import javax.sound.sampled.*;
+import java.net.URL;
 
 public class welcomePanel extends JPanel {
     private JFrame parentFrame;
     private CardLayout cardLayout;
     private JPanel cardPanel;
     private Image backgroundImage;
+    private Clip clip;  // Untuk sound
 
     public welcomePanel(JFrame frame) {
         this.parentFrame = frame;
@@ -15,7 +18,7 @@ public class welcomePanel extends JPanel {
 
         // Load background image
         try {
-            this.backgroundImage = new ImageIcon(getClass().getResource("/image/Background4.gif")).getImage();
+            this.backgroundImage = new ImageIcon(getClass().getResource("/image/BG-Awal.gif")).getImage();
         } catch (Exception e) {
             System.err.println("Error loading background image: " + e.getMessage());
             this.backgroundImage = null;
@@ -26,7 +29,7 @@ public class welcomePanel extends JPanel {
         // Tambah panel ke cardPanel
         cardPanel.add(createMainMenu(), "MAIN_MENU");
 
-        // Masukkan ModeSelectionPanel (yang akan memulai GameMain)
+        // Masukkan ModeSelectionPanel
         ModeSelectionPanel modeSelectionPanel = new ModeSelectionPanel(parentFrame, cardLayout, cardPanel);
         cardPanel.add(modeSelectionPanel, "GAME_SETUP");
 
@@ -36,6 +39,9 @@ public class welcomePanel extends JPanel {
         setLayout(new BorderLayout());
         add(cardPanel, BorderLayout.CENTER);
         cardLayout.show(cardPanel, "MAIN_MENU");
+
+        // Play music
+        playSound("/audio/toy-story.wav");
     }
 
     private JPanel createMainMenu() {
@@ -59,12 +65,12 @@ public class welcomePanel extends JPanel {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(50, 80, 50, 80));
 
-        JButton startButton = new JButton("Mulai Permainan");
-        JButton instructionButton = new JButton("Petunjuk Game");
-        JButton exitButton = new JButton("Keluar");
+        JButton startButton = new JButton("MULAI PERMAINAN");
+        JButton instructionButton = new JButton("PETUNJUK GAME");
+        JButton exitButton = new JButton("KELUAR");
 
-        Dimension buttonSize = new Dimension(180, 35);
-        Font buttonFont = new Font("Goudy Stout", Font.PLAIN, 10);
+        Dimension buttonSize = new Dimension(180, 45);
+        Font buttonFont = new Font("Comic Sans MS", Font.BOLD, 15);
         JButton[] buttons = {startButton, instructionButton, exitButton};
 
         for (JButton b : buttons) {
@@ -86,10 +92,21 @@ public class welcomePanel extends JPanel {
         instructionButton.addMouseListener(new HoverEffect(instructionButton, new Color(100, 190, 100), new Color(76, 175, 80)));
         exitButton.addMouseListener(new HoverEffect(exitButton, new Color(255, 100, 100), Color.RED));
 
-        // Button action
-        startButton.addActionListener(e -> cardLayout.show(cardPanel, "GAME_SETUP"));
-        instructionButton.addActionListener(e -> cardLayout.show(cardPanel, "INSTRUCTIONS"));
-        exitButton.addActionListener(e -> System.exit(0));
+        // Button actions (stop sound when clicked)
+        startButton.addActionListener(e -> {
+            stopSound();
+            cardLayout.show(cardPanel, "GAME_SETUP");
+        });
+
+        instructionButton.addActionListener(e -> {
+            stopSound();
+            cardLayout.show(cardPanel, "INSTRUCTIONS");
+        });
+
+        exitButton.addActionListener(e -> {
+            stopSound();
+            System.exit(0);
+        });
 
         buttonPanel.add(Box.createVerticalGlue());
         buttonPanel.add(startButton);
@@ -152,7 +169,10 @@ public class welcomePanel extends JPanel {
         JButton backButton = new JButton("Kembali");
         backButton.setPreferredSize(new Dimension(100, 30));
         backButton.addMouseListener(new HoverEffect(backButton, new Color(200, 200, 200), UIManager.getColor("Button.background")));
-        backButton.addActionListener(e -> cardLayout.show(cardPanel, "MAIN_MENU"));
+        backButton.addActionListener(e -> {
+            cardLayout.show(cardPanel, "MAIN_MENU");
+            playSound("/audio/toy-story.wav");  // Restart musik saat kembali ke menu
+        });
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);
@@ -164,7 +184,33 @@ public class welcomePanel extends JPanel {
         return panel;
     }
 
-    // HoverEffect inner class
+    // --------------------- Sound Logic -----------------------
+
+    private void playSound(String path) {
+        try {
+            stopSound(); // kalau ada yang sedang main, stop dulu
+            URL url = getClass().getResource(path);
+            if (url == null) {
+                System.err.println("Sound file not found: " + path);
+                return;
+            }
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(url);
+            clip = AudioSystem.getClip();
+            clip.open(audioIn);
+            clip.start(); // .loop(Clip.LOOP_CONTINUOUSLY); bisa diganti kalau mau looping
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopSound() {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
+            clip.close();
+        }
+    }
+
+    // -------------------- Hover Effect ---------------------
     private static class HoverEffect extends MouseAdapter {
         private final JButton button;
         private final Color hoverColor, normalColor;
@@ -186,7 +232,7 @@ public class welcomePanel extends JPanel {
         }
     }
 
-    // Jalankan dari sini
+    // -------------------- Main Method ---------------------
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Tic Tac Toe Game");
